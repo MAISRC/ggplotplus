@@ -24,7 +24,7 @@ execute:
   error: false              # Hide errors (set true if you want to show failures)
   freeze: auto              # Prevent re-running code unless it changes
 editor: visual              # Helps with editing
-version: "0.5.2"
+version: "0.5.3"
 ---
 
 ## Getting started
@@ -99,7 +99,7 @@ Each of these functions is discussed in more depth in the sections that follow, 
 
 To introduce you to the tools in this package, let’s start by creating a simple, one-line `ggplot2` graph as a reference point. The code below generates a scatterplot of petal length vs. sepal length for iris flowers from three species. These data come from the classic `iris` data set, automatically included with every installation of R. Points in the scatterplot are colored according to species:
 
-```{r basic iris scatter}
+```{r basic iris scatter, message=FALSE}
 ggplot(data = iris, #<--THE DATA SET
        mapping = aes(x = Petal.Length, #<--MAPPING OUR AESTHETICS. WE'RE SAYING "*THIS* VARIABLE IN THE DATA SET SHOULD USE *THAT* VISUAL CHANNEL IN THE GRAPH". HERE, WE'VE MAPPED PETAL LENGTH TO HORIZONTAL (X) POSITION AND SEPAL LENGTH TO VERTICAL (Y) POSITION.
            y = Sepal.Length)) +
@@ -164,7 +164,7 @@ With many of the design challenges outlined above in mind, `ggplotplus` introduc
 
 The intention of `theme_plus()` is to rewrite many dozens of the "presets" inside of `ggplot2`'s default `theme()` so that you don't have to! Just tack it on to any `ggplot` call, even with no inputs, to access its benefits:
 
-```{r first use of theme_plus}
+```{r first use of theme_plus, message=FALSE}
 #THE EXACT SAME GGPLOT COMMAND AS BEFORE...
 ggplot(data = iris, 
        mapping = aes(x = Petal.Length, 
@@ -223,7 +223,7 @@ The way they achieve this is by featuring continuous variance in not just in **h
 
 Thanks to enhancements made to `ggplot2::theme()` as of the package's 4.0.0 Version, released September 11, 2025, one can now set default color palettes within a theme (this used to require using R's global options and was relatively inflexible). For example, one can do something like:
 
-```{r palettes plus}
+```{r palettes plus, message=FALSE}
 #| eval: false
 #| include: true
 ###CODE TO BE ADDED TO A GGPLOT CALL TO SET A DEFAULT COLOR PALETTE
@@ -248,7 +248,7 @@ However, it excludes, by default, the lightest yellow hues from the `viridis` pa
 
 -   `end_discrete = 1` would enable the light yellow portion, such as when you don't have other light elements or a light background.
 
-```{r bringing in dark purple}
+```{r bringing in dark purple, message=FALSE}
 #SAME GRAPH AS BEFORE EXCEPT...
 ggplot(data = iris, 
        mapping = aes(x = Petal.Length, 
@@ -264,7 +264,7 @@ In this example, we’ve disabled the purple end of the palette and we've enable
 
 To see the default color palette for a continuous variable, let's temporarily map color to a numeric variable instead:
 
-```{r base continuous scale}
+```{r base continuous scale, message=FALSE}
 #A BASE GGPLOT2 GRAPH WITHOUT theme_plus() ON FOR REFERENCE
 ggplot(iris,
        mapping = aes(x = Petal.Length, 
@@ -274,7 +274,7 @@ ggplot(iris,
 
 The default `ggplot2` palette for continuous variables is "blues," which is a reasonable palette in that it does vary in luminance, making it more broadly accessible. However, it doesn't vary in hue, which can make nearby values harder to distinguish. As such, `theme_plus()` changes the palette to `cividis`, which has three distinct hues: blue, gray, and yellow:
 
-```{r check out cividis}
+```{r check out cividis, message=FALSE}
 ggplot(iris,
        mapping = aes(x = Petal.Length, 
            y = Sepal.Length)) +
@@ -288,7 +288,7 @@ Because humans like to "chunk" data into discrete groups according to hue, even 
 
 Another major feature of `ggplot2`'s 4.0.0 update was to allow users to set many geometry-layer-specific design settings within `theme()`. These used to have to be set in each individual `geom_*()` layer separately. For example, a user can now add a `theme()` call of the following form to their graphs:
 
-```{r example theme geom code}
+```{r example theme geom code, message=FALSE}
 #| eval: false
 #| include: true
 ###EXAMPLE ADJUSTMENT OF GEOMETRY-LAYER-SPECIFIC DESIGN SETTINGS FROM WITHIN THEME.
@@ -359,6 +359,56 @@ At `alpha = 0.3`, individual points maintain sufficient contrast with the backgr
 
 Note: This approach also dims the **black point strokes**, so contrast could still be a concern for low-vision readers with the yellow fill colors. Additionally, variance in luminance will be reduced by using transparency, which can make the graph harder to view in grayscale. Color (and overplotting) in graphs is challenging to navigate! When overplotting is a serious concern, consider whether a scatterplot is the best way to represent your data, and whether you need to plot *all* your data to achieve your goals.
 
+### Easier-To-Read Legend Keys
+
+Did you notice: In the previous graph, even though we adjusted the transparency of the points using `alpha`, the legend key symbols retained full opacity? That's another `ggplotplus` default design opinion: legend keys should always be readable!
+
+When points are made smaller (`size` is adjusted downward) and/or points are made semi-transparent (`alpha` is adjusted downward), `ggplot2`'s default behavior is to apply these same changes to the legend key symbols as well. However, this might make those symbols harder to read. For example:
+
+```{r not easy to read, message=FALSE}
+ggplot(data = iris, 
+       mapping = aes(x = Petal.Length, 
+           y = Sepal.Length)) +
+  geom_point(mapping = aes(fill = Species),
+             alpha = 0.3,
+             size = 2) + #<--MAKE POINTS MUCH SMALLER
+  theme_plus(begin_discrete = 0, 
+              end_discrete = 1, 
+             override_legend_alphasize = FALSE #<-DISABLE LEGEND KEY OPINIONS
+              ) 
+```
+
+In this graph, we've reduced the size and opacity of the points, and now it's pretty difficult to differentiate the legend keys.
+
+Now, there might be reasons we'd want points *within the plotting area* to be smaller and/or more transparent! But unless variation in point size/transparency conveys information about differences (e.g., these aesthetics *aren't* constants, i.e., you've *mapped* them to variable data), it's often undesirable from a readability standpoint to apply these same traits to the legend key symbols too.
+
+So, `ggplotplus` will coerce legend key symbols back to full opacity and a reasonable size (`5`) unless you:
+
+-   Set `override_legend_alphasize` to `FALSE`, as we did above (this can also be done via `gridlines_plus()` and `yaxis_title_plus()` as well!).
+
+-   You set `guide = 'none'` inside a `scale_*` function or `guides()`.
+
+-   You specify your own legend overrides for `size` and/or `alpha` via `guide_legend(override.aes = list(...))`.
+
+If you map just one of the two aesthetics, the overrides will automatically apply to only the other. For example:
+
+```{r just one override, message=FALSE}
+#| fig-height: 5.26
+#| fig-width: 7.25
+###PLOTTING WINDOW NOW RESCALED TO A WIDTH OF 7 INCHES X 5.26 INCHES
+
+ggplot(data = iris, 
+       mapping = aes(x = Petal.Length, 
+           y = Sepal.Length)) +
+  geom_point(mapping = aes(fill = Species,
+                           size = Petal.Width), #<-MAP SIZE TO A COLUMN IN OUR DATA SET.
+             alpha = 0.3) +
+  theme_plus(begin_discrete = 0, 
+              end_discrete = 1) 
+```
+
+Here, we set size to vary as a function of a variable, so variation in point size now conveys meaning. Our point size legend (top) respects that. However, our point alpha adjustment is ignored in both legends, and the fill legend (bottom) continues to use a large, constant size.
+
 ### Detour: Mapping Visual Channels in `ggplot2` (a Review)
 
 In `ggplot2`, you can partially control the visual appearance of your graph using **aesthetics**, which connect **visual channels** (like position, color, size, or fill) to variables in your data set or set them to constant values.
@@ -428,7 +478,7 @@ In this version:
 
 Most common `ggplot2` geoms have defaults adjusted by `theme_plus()`, though not all. To see a list of those receiving specific adjustments, run this command:
 
-```{r geom list}
+```{r geom list, message=FALSE}
 sort(names(geom_plus_defaults))
 ```
 
@@ -555,7 +605,7 @@ The left-hand side of the colorbar's scale has expanded to include 0 so that it'
 
 `scale_continuous_plus()` has another handy feature that is often of value for legend titles, specifically: set `split_name` to `TRUE` to break the legend onto many lines by spaces in the original entry:
 
-```{r split names}
+```{r split names, message=FALSE}
 ggplot(iris,
        mapping = aes(x = Petal.Length, 
            y = Sepal.Length)) +
@@ -576,7 +626,7 @@ ggplot(iris,
 
 You can still provide a vector of custom axis labels to `scale_continuous_plus`, like you can with its `ggplot2` counterparts, but it requires a little trial and error. Because `scale_continuous_plus` must "experiment" to find the right limits and breaks for your scale, it may ultimately create breaks outside the limits shown and which are thus invisible. As such, you may need to provide more labels (including 1 or 2 blank labels on either side) than it appears you'd need. However, if you provide fewer labels than are strictly required, the function makes an educated guess about how to pad them to display properly:
 
-```{r}
+```{r adding custom labels, message=FALSE}
 ggplot(iris,
        mapping = aes(x = Petal.Length, 
            y = Sepal.Length)) +
@@ -755,7 +805,7 @@ Because gridlines are *primarily* beneficial for helping a reader discern exact 
 
 There might be situations wherein you might want to add very subtle gridlines, and you have more than one continuous axis, but you already know you don't want to add gridlines along one of those two axes. For example, perhaps you have time data on the x-axis, and, even though these data are technically continuous, you don't want gridlines added along that dimension. No worries: set the `notx` or `noty` parameter inside `gridlines_plus()` to `TRUE`:
 
-```{r reject gridlines}
+```{r reject gridlines, message=FALSE}
 ggplot(iris,
        mapping = aes(x = Petal.Length, 
            y = Species)) +
@@ -881,7 +931,7 @@ One of these, point `shape`, is a useful and classic channel for communicating d
 
 However, `ggplot2` only makes available the same 26 shapes available in base R:
 
-```{r Rs base shapes }
+```{r Rs base shapes, message=FALSE}
 pch_values = 0:25
 
 #THE SHAPES AVAILABLE IN R/GGPLOT2
@@ -902,7 +952,7 @@ Notably, only the last five shapes of those bundled with R have separate outline
 
 As such, `ggplotplus` introduces `geom_point_plus()`, a variant of `ggplot2`'s `geom_point()` layer that introduces access to nine new, intentionally crafted shapes that vary as much as possible along the three axes described above while also being able to bear separate stroke and fill colors:
 
-```{r shape palette}
+```{r shape palette, message=FALSE}
 #| fig-height: 7
 #| fig-width: 9
 
@@ -992,7 +1042,7 @@ ggplot(
 
 There is also a `geom_jitter_plus()`, if you'd like to add a little variance to your point locations, e.g., to reduce overplotting:
 
-```{r geom_jitter_plus}
+```{r geom_jitter_plus, message=FALSE}
 set.seed(123)
 
 ggplot(
@@ -1023,7 +1073,7 @@ Note that, at present, `shape` cannot be mapped globally to access these shapes�
 
 To respect the legacy of R graphics, `geom_point_plus()` also has access to the five base R shapes (`pch` 21:25) that can take both fill and color aesthetics. These are accessible via their standard `pch` numbers, e.g. 23, or by names: "circle", "square", "diamond", "triangle_up", and "triangle_down". These can be mix-and-matched with the other shapes added by `ggplotplus`:
 
-```{r mix and match shapes}
+```{r mix and match shapes, message=FALSE}
 set.seed(123)
 
 ggplot(
@@ -1054,7 +1104,7 @@ The first step to doing so is to generate a list of vertices for your shape. Sha
 
 For example, a basic 5-pointed star, with no holes, might have coordinates like these:
 
-```{r test star}
+```{r test star, message=FALSE}
 (test_star = data.frame(
   x = c(
     0.000,
@@ -1086,7 +1136,7 @@ For example, a basic 5-pointed star, with no holes, might have coordinates like 
 
 We can register this shape with `ggplotplus` for the session using `add_shape_plus()`:
 
-```{r adding shape}
+```{r adding shape, message=FALSE}
 add_shape_plus(name = "star", #<--THE NAME TO USE TO ACCESS THIS SHAPE.
                shape = test_star
               )
@@ -1094,7 +1144,7 @@ add_shape_plus(name = "star", #<--THE NAME TO USE TO ACCESS THIS SHAPE.
 
 Once registered, you can refer to this shape by name in any later calls:
 
-```{r using the star}
+```{r using the star, message=FALSE}
 set.seed(123)
 
 ggplot(
@@ -1182,7 +1232,7 @@ Specifically, we highly recommend specifying a `dpi` of at least 300 (the defaul
 
 For example, full page width in a typical scientific journal is approximately 7 inches, and a typical aspect ratio (width:height) is approximate 1.33, yielding a typical height around 5.26 inches. So, a reasonable `ggsave()` call might look like this:
 
-```{r default ggsave}
+```{r default ggsave, message=FALSE}
 #| eval: false
 #| include: true
 ###HYPOTHETICAL GGSAVE COMMAND
@@ -1198,7 +1248,7 @@ However, as any experienced `ggplot2` user knows, a graph's design may look grea
 
 `ggplotplus`'s `theme_plus()` function recognizes this and exposes two inputs: `export_width` and `export_height`. When using it, specify the ultimate dimensions you intend to export your graph at (e.g., 7 x 5.26), and it'll adjust the default font and line sizes (though not any custom sizes you've provided!) accordingly to look (reasonably) good at your output dimensions:
 
-```{r}
+```{r nice exporting sizing, message=FALSE}
 #| fig-height: 5.26
 #| fig-width: 7
 ###PLOTTING WINDOW NOW RESCALED TO A WIDTH OF 7 INCHES X 5.26 INCHES
@@ -1227,3 +1277,29 @@ ggplot(iris,
   yaxis_title_plus() +
   gridlines_plus() 
 ```
+
+## Warnings Surrounding Best Practices
+
+While `ggplotplus` goes out of its way to try to align your graphs with data visualization best practices by default, there are certain aspects it cannot necessary coerce for you. However, it can notice when these aspects are suboptimal and gently let you know and give you some ideas for what to do differently.
+
+For example, humans struggle to perceive the differences between colors when there are more than \~7-12 of these within a plot. Beyond this threshold, at least one pair of colors will be difficult for many to tell apart. In the rare instances where so many discrete levels are needed, color is a suboptimal visual channel to use.
+
+If you try to use this many, `ggplotplus` will (politely) recommend different courses of action:
+
+```{r warnings in re too many colors}
+#| fig-height: 5.26
+#| fig-width: 8
+
+ggplot(data = iris, 
+       mapping = aes(x = Petal.Length, 
+           y = Sepal.Length)) +
+  geom_point(mapping = aes(
+    fill = factor(Petal.Width)), #<--THIS WILL REQUEST A VERY LARGE NUMBER OF DISCRETE COLORS.
+             alpha = 0.3) +
+  theme_plus(begin_discrete = 0, 
+              end_discrete = 1) 
+```
+
+You'll also note that it encourages you to consider renaming your scale titles to something more informative and human-readable too!
+
+If these coaching messages get too tedious for you, though, you can set `enable_coaching` to FALSE in `yaxis_title_plus()`, `theme_plus()`, or `gridlines_plus()` to turn all these checks and messages off. You can also disable them for the duration of the session by disabling them in the R options via `options(ggplotplus.enable_coaching = FALSE)`.

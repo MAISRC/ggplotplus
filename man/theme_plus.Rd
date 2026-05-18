@@ -20,7 +20,9 @@ theme_plus(
   begin_continuous = 0,
   end_continuous = 1,
   export_width = 7.25,
-  export_height = 5.95
+  export_height = 5.95,
+  override_legend_alphasize = TRUE,
+  enable_coaching = TRUE
 )
 }
 \arguments{
@@ -28,8 +30,10 @@ theme_plus(
 (same as in ggplot2).}
 
 \item{legend_pos}{Where to put the legend. \code{"top"} (default) creates a
-horizontal stripe at the top for the legend (box) when one is present; \code{"right"} uses a vertical legend at the
-right (ggplot2’s usual position) but with design modifications.}
+horizontal stripe at the top for the legend (box) when one is present;
+\code{"right"} uses a vertical legend at the right (ggplot2’s usual position)
+but with design modifications. \code{"bottom"} is also an option (largely same
+as \code{"top"}).}
 
 \item{base_font_size}{Base text size (in points) for most text elements. These
 will scale via \code{rel()}. Default is \code{16}.}
@@ -54,6 +58,10 @@ and strip backgrounds. Defaults to a slightly warm white, \code{"#FFFEFD"}, to r
 \item{begin_discrete, end_discrete, begin_continuous, end_continuous}{Numeric values ranging between 0 and 1 for where to begin drawing colors from a viridis palette for a discrete and continuous color scale, respectively.}
 
 \item{export_width, export_height}{Length-1 numeric values indicating your intended export (most likely via ggplot2::ggsave()) width and height, respectively. This rescales font and line sizes internally to stay relatively appropriately for your intended export size.}
+
+\item{override_legend_alphasize}{Logical indicating whether, for any fill, color, and/or shape legends, to override the size and/or alpha values to the ggplotplus default values (1 and 5, respectively). Defaults to TRUE.}
+
+\item{enable_coaching}{Logical indicating whether ggplotplus should perform certain automated checks for possible non-Universal graph design and provide coaching messages when these are detected. Defaults to TRUE.}
 }
 \value{
 A ggplot2 theme object to add with \code{+}.

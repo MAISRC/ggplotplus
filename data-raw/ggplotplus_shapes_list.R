@@ -70,8 +70,8 @@
 #SHAPE 4: LOTUS (ALSO CALLED THE "EGG OF LIFE"). THIS SHAPE IS OPEN, ROUNDED, AND INTERSECTIONAL.
 {
   outer_r  = 0.40        # radius of big disk
-  inner_r  = 0.09        # radius of each hole
-  r_offset = 0.24        # distance from origin to the six outer-hole centers
+  inner_r  = 0.08        # radius of each hole
+  r_offset = 0.25        # distance from origin to the six outer-hole centers
   n_pts    = 100
   theta    = seq(0, 2*pi, length.out = n_pts)
 
@@ -259,13 +259,13 @@ triangle_down = data.frame(
 ggplotplus_shapes_list = list(
   plus = plus,
   octagon = octagon,
-  flower = flower,
-  oval = oval,
-  waffle = waffle,
-  squircle = squircle,
-  sunburst = sunburst,
   lotus = egg_of_life,
+  squircle = squircle,
+  waffle = waffle,
+  flower = flower,
   economy = economy,
+  oval = oval,
+  sunburst = sunburst,
   circle = circle,
   square = square,
   diamond = diamond,

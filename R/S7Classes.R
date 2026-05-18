@@ -12,7 +12,9 @@ GridlinesPlus = S7::new_class(
     linewidth = S7::class_numeric,
     linetype = S7::class_character,
     notx = S7::class_logical,
-    noty = S7::class_logical
+    noty = S7::class_logical,
+    override_legend_alphasize = S7::class_logical,
+    enable_coaching = S7::class_logical
   )
 )
 
@@ -28,7 +30,9 @@ ThemePlus = S7::new_class(
   "ThemePlus",
   properties = list(
     applyGeomDefaults = S7::class_logical,
-    theme2add = S7::class_any
+    theme2add = S7::class_any,
+    override_legend_alphasize = S7::class_logical,
+    enable_coaching = S7::class_logical
   )
 )
 
@@ -44,7 +48,10 @@ YAxisTitlePlus = S7::new_class(
   properties = list(
     location = S7::class_character,
     nudgeTopLegendDown = S7::class_logical,
-    nudgeHowMuch = S7::class_numeric)
+    nudgeHowMuch = S7::class_numeric,
+    override_legend_alphasize = S7::class_logical,
+    enable_coaching = S7::class_logical
+    )
 )
 
 #' Internal S7 state container for ggplotplus plots
@@ -61,7 +68,8 @@ GGPlotPlusState = S7::new_class(
     y_axis_title = S7::new_property(class = S7::class_any, default = NULL),
     theme = S7::new_property(class = S7::class_any, default = NULL),
     guides = S7::new_property(class = S7::class_any, default = NULL),
-    warnings = S7::new_property(class = S7::class_any, default = NULL)
+    warnings = S7::new_property(class = S7::class_any, default = NULL),
+    general_intents = S7::new_property(class = S7::class_any, default = NULL)
   )
 )
 

@@ -115,9 +115,9 @@ GeomPointPlus = ggplot2::ggproto(
 
     #PRECOMPUTE THE POINT SIZING IN PTS, REFERRING ONLY TO NON-NA POINTS.
     size_pts = coords$size * ggplot2::.pt + stroke_size * ggplot2::.stroke / 2
-    stroke_pts = stroke_size * ggplot2::.stroke / 2
+    stroke_pts = (stroke_size * ggplot2::.stroke / 2) * 0.8
 
-    .pointplus_scale = 1.3  #TWEAK AS NEEDED TO GET POINTS TO BE ROUGHLY THE RIGHT SIZE.
+    .pointplus_scale = 1.2  #TWEAK AS NEEDED TO GET POINTS TO BE ROUGHLY THE RIGHT SIZE.
 
     #BUILD ONE PATH GROB (CUSTOM SHAPE) PER POINT, USING THE EVEN-ODD RULE TO PUNCH HOLES OUT OF THE CENTER OF SOME SHAPES.
     g = Map(function(x, y, shape, size, color, fill, lwd) {
@@ -151,9 +151,9 @@ GeomPointPlus = ggplot2::ggproto(
 
     #SET DEFAULTS THAT MIRROR WHAT THE PACKAGE USES FOR GEOM_POINT. PROBABLY NOT NECESSARY BUT ALSO PROBALBY NOT HURTING ANYTHING.
     if(is.null(data$shape)) data$shape = 21
-    stroke_size = data$stroke %||% 1.2
+    stroke_size = (data$stroke %||% 1.2) * 0.8
     stroke_size[is.na(stroke_size)] = 0
-    size = data$size %||% 5
+    size = (data$size %||% 6 * 1.3)
 
 
     #NUMERIC SHAPE VALUES ONCE AGAIN DIVERT TO STANDARD POINTSGROB.

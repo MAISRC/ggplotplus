@@ -13,6 +13,7 @@ geom_point_plus(
   n_shapes = length(avail_shapes),
   chosen_shapes = NULL,
   legend_title = NULL,
+  legend_labels = NULL,
   key_size = 8,
   include_shape_legend = TRUE,
   ...,
@@ -38,6 +39,8 @@ geom_point_plus(
 \item{chosen_shapes}{A character string referring by name to elements in the current shapes registry that the function should use to allocate shapes to values, e.g. \verb{c("flower", "octagon", "squircle)}. These are provided internally to a \code{scale_shape_manual()} call and are meant to circumvent the need for such a call to specify a specific subset of shapes to be used from the new shapes palette. Defaults to \code{NULL}, i.e., shapes are pulled from \code{shapes.list} in order. Numerical values will use \code{ggplot2}'s default shapes instead.}
 
 \item{legend_title}{A length-1 character string corresponding to the name to be used for the shape legend title (if any). This is passed internally to \code{scale_shape_manual()} and is meant to help circumvent the need for the user to specify any such call directly.}
+
+\item{legend_labels}{A character vector corresponding to the names to be used for the shape legend labels (if any). This is passed internally to \code{scale_shape_manual()} and is meant to help circumvent the need for the user to specify any such call directly.}
 
 \item{key_size}{A length-1 numeric value corresponding to the desired size of the legend keys. Defaults to 8. This is passed internally to \code{scale_shape_manual()} and is meant to help circumvent the need for the user to specify any such call directly.}
 

@@ -17,10 +17,10 @@ execute:
   message: false
 editor: visual
 date: today
-version: "0.5.2"
+version: "0.5.3"
 ---
 
-# *ggplotplus* <img src="man/figures/ggplotplus_hex.png" align="right" width="180" alt="ggplotplus hex sticker">Universal Design additions for *ggplot2*
+# *ggplotplus* -- <img src="man/figures/ggplotplus_hex.png" align="right" width="180" alt="ggplotplus hex sticker" zindex = >Universal Design additions for *ggplot2*
 
 ## Quick Start Guide
 

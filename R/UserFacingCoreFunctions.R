@@ -10,6 +10,8 @@
 #' @param linewidth Gridline width (theme line units). Single numeric. Default: `1.2`.
 #' @param linetype Gridline type. Single string (e.g., `"solid"`, `"dashed"`).
 #' @param notx,noty Logicals indicating whether gridlines should not be drawn in a specific direction (i.e., the user wants those to be blank even when the axis is continuous). Default to FALSE (gridlines are added).
+#' @param override_legend_alphasize Logical indicating whether, for any fill, color, and/or shape legends, to override the size and/or alpha values to the ggplotplus default values (1 and 5, respectively). Defaults to TRUE.
+#' @param enable_coaching Logical indicating whether ggplotplus should perform certain automated checks for possible non-Universal graph design and provide coaching messages when these are detected. Defaults to TRUE.
 #'
 #' @return An ggplot class object for adding to a plot with `+`.
 #'
@@ -42,13 +44,17 @@ gridlines_plus = function(color = "gray90",
                           linewidth = 1.2,
                           linetype = "solid",
                           notx = FALSE,
-                          noty = FALSE) {
+                          noty = FALSE,
+                          override_legend_alphasize = TRUE,
+                          enable_coaching = TRUE) {
   GridlinesPlus(
     color = color,
     linewidth = linewidth,
     linetype = linetype,
     notx = notx,
-    noty = noty
+    noty = noty,
+    override_legend_alphasize = override_legend_alphasize,
+    enable_coaching = enable_coaching
   )
 }
 
@@ -61,6 +67,8 @@ gridlines_plus = function(color = "gray90",
 #' @param nudgeTopLegendDown A length-1 logical indicating whether a top legend (box) (if any) should be moved down to align with the relocated y axis title (where they could clip into each other). Defaults to FALSE.
 #'
 #' @param nudgeHowMuch A length-1 positive integer indicating how much to nudge the top legend (box) (if any) down, if `nudgeTopLegendDown` == `TRUE`. Defaults to `20` points as a general guess and may need adjusting.
+#' @param override_legend_alphasize Logical indicating whether, for any fill, color, and/or shape legends, to override the size and/or alpha values to the ggplotplus default values (1 and 5, respectively). Defaults to TRUE.
+#' @param enable_coaching Logical indicating whether ggplotplus should perform certain automated checks for possible non-Universal graph design and provide coaching messages when these are detected. Defaults to TRUE.
 #'
 #' @return An ggplot class object for adding to a plot with `+`.
 #' @examples
@@ -72,11 +80,15 @@ gridlines_plus = function(color = "gray90",
 #' @export
 yaxis_title_plus = function(location = "top",
                             nudgeTopLegendDown = FALSE,
-                            nudgeHowMuch = 20) {
+                            nudgeHowMuch = 20,
+                            override_legend_alphasize = TRUE,
+                            enable_coaching = TRUE) {
   YAxisTitlePlus(
     location = location,
     nudgeTopLegendDown = nudgeTopLegendDown,
-    nudgeHowMuch = nudgeHowMuch
+    nudgeHowMuch = nudgeHowMuch,
+    override_legend_alphasize = override_legend_alphasize,
+    enable_coaching = enable_coaching
   )
 }
 
@@ -351,8 +363,10 @@ scale_continuous_plus =
 #' @param ... Optional additional theme settings passed to [ggplot2::theme()]. These are applied *after* the base theme, so the theme's defaults only "win" when no matching settings are provided by the user
 #'   (same as in ggplot2).
 #' @param legend_pos Where to put the legend. `"top"` (default) creates a
-#'   horizontal stripe at the top for the legend (box) when one is present; `"right"` uses a vertical legend at the
-#'   right (ggplot2’s usual position) but with design modifications.
+#'   horizontal stripe at the top for the legend (box) when one is present;
+#'   `"right"` uses a vertical legend at the right (ggplot2’s usual position)
+#'   but with design modifications. `"bottom"` is also an option (largely same
+#'   as `"top"`).
 #' @param base_font_size Base text size (in points) for most text elements. These
 #'   will scale via `rel()`. Default is `16`.
 #' @param base_linewidth Baseline thickness for most **line** theme elements
@@ -368,6 +382,8 @@ scale_continuous_plus =
 #' @param palette_discrete,palette_continuous Default viridis-family color palette codes ("A" through "H") to use for discrete and continuous scales, respectively.
 #' @param begin_discrete,end_discrete,begin_continuous,end_continuous Numeric values ranging between 0 and 1 for where to begin drawing colors from a viridis palette for a discrete and continuous color scale, respectively.
 #' @param export_width,export_height Length-1 numeric values indicating your intended export (most likely via ggplot2::ggsave()) width and height, respectively. This rescales font and line sizes internally to stay relatively appropriately for your intended export size.
+#' @param override_legend_alphasize Logical indicating whether, for any fill, color, and/or shape legends, to override the size and/or alpha values to the ggplotplus default values (1 and 5, respectively). Defaults to TRUE.
+#' @param enable_coaching Logical indicating whether ggplotplus should perform certain automated checks for possible non-Universal graph design and provide coaching messages when these are detected. Defaults to TRUE.
 #'
 #' @return A ggplot2 theme object to add with `+`.
 #'
@@ -416,7 +432,9 @@ theme_plus = function(...,
                       begin_continuous = 0,
                       end_continuous = 1,
                       export_width = 7.25,
-                      export_height = 5.95) {
+                      export_height = 5.95,
+                      override_legend_alphasize = TRUE,
+                      enable_coaching = TRUE) {
 
   #ONE ODD INTERACTION IS WITH strip.text(), WHICH CAN ONLY BE BLANKED BY HITTING X AND Y SEPARATELY. SOMETHING TO PONDER WHEN ADJUSTING SUBSCALES SEPARATELY...
   user_theme = ggplot2::theme(...)
@@ -506,7 +524,9 @@ theme_plus = function(...,
 
   ThemePlus(
     applyGeomDefaults = TRUE,
-    theme2add = theme_plus2add
+    theme2add = theme_plus2add,
+    override_legend_alphasize = override_legend_alphasize,
+    enable_coaching = enable_coaching
   )
 
 }
@@ -531,6 +551,7 @@ theme_plus = function(...,
 #' @param n_shapes A length-1 integer corresponding to the number of distinct shapes the function is allowed to pull from the shapes palette specified to `avail_shapes`. Defaults to the length of `avail_shapes` and should probably not be changed.
 #' @param chosen_shapes A character string referring by name to elements in the current shapes registry that the function should use to allocate shapes to values, e.g. `c("flower", "octagon", "squircle)`. These are provided internally to a `scale_shape_manual()` call and are meant to circumvent the need for such a call to specify a specific subset of shapes to be used from the new shapes palette. Defaults to `NULL`, i.e., shapes are pulled from `shapes.list` in order. Numerical values will use `ggplot2`'s default shapes instead.
 #' @param legend_title A length-1 character string corresponding to the name to be used for the shape legend title (if any). This is passed internally to `scale_shape_manual()` and is meant to help circumvent the need for the user to specify any such call directly.
+#' @param legend_labels A character vector corresponding to the names to be used for the shape legend labels (if any). This is passed internally to `scale_shape_manual()` and is meant to help circumvent the need for the user to specify any such call directly.
 #' @param key_size A length-1 numeric value corresponding to the desired size of the legend keys. Defaults to 8. This is passed internally to `scale_shape_manual()` and is meant to help circumvent the need for the user to specify any such call directly.
 #' @param include_shape_legend Logical indicating whether a shape legend will be shown (one is always shown unless this is set to FALSE, even when shape is being mapped to a constant and thus a legend may not be appropriate).
 #' @param ... Other arguments passed on to this layer()'s params argument, as in `ggplot2::geom_point()`.
@@ -558,6 +579,7 @@ geom_point_plus = function(mapping = NULL,
                            n_shapes = length(avail_shapes), #HOW MANY DISTINCT SHAPES SHOULD BE PULLED FROM THE AVAILABLE PALETTE? DEFAULTS TO ALL OF THEM.
                            chosen_shapes = NULL, #WE PROVIDE DIRECT ACCESS TO THE VALUES ARGUMENT OF SCALE_SHAPE_MANUAL VIA THIS PARAMETER. THIS WAY, A USER NEEDN'T TACK ON AN ADDITIONAL CALL TO SCALE_SHAPE_MANUAL() TO CUSTOMIZE THE SHAPES USED.
                            legend_title = NULL, #WE ALSO PROVIDE DIRECT ACCESS TO THE TITLE ARGUMENT OF THE LEGEND, AS CHANGING THIS MANUALLY WOULD OTHERWISE REQUIRE ANOTHER CALL TO SCALE_SHAPE_DISCRETE AND THAT WOULD TRIGGER A WARNING AND RESET TO THE SHAPES PALETTE GGPLOT2 GENERALLY USES.
+                           legend_labels = NULL, #SAME AS ABOVE.
                            key_size = 8, #WE PROVIDE DIRECT ACCESS TO THE SIZES OF THE KEYS IN THE LEGEND TOO.
                            include_shape_legend = TRUE, #WE PROVIDE DIRECT ACCESS TO WHETHER OR NOT A SHAPE LEGEND GETS SHOWN, FOR USE IN SINGLE-SHAPE SCATTERPLOTS WHERE THE CUSTOM SHAPES ARE USED INSTEAD OF GGPLOT2 DEFAULTS.
                            ...,
@@ -621,12 +643,17 @@ geom_point_plus = function(mapping = NULL,
     "none"
   }
 
+  scale_args = list(values = values, guide = guide_obj)
+
   #ADD THE SHAPE SCALE
-  scale_call = if(!is.null(legend_title)) {
-    ggplot2::scale_shape_manual(name = legend_title, values = values, guide = guide_obj)
-  } else {
-    ggplot2::scale_shape_manual(values = values, guide = guide_obj)
+  if(!is.null(legend_title)) {
+  scale_args$name = legend_title
   }
+  if(!is.null(legend_labels)) {
+  scale_args$labels = legend_labels
+  }
+
+  scale_call = do.call(ggplot2::scale_shape_manual, scale_args)
 
   #AND ADD A SIZE SCALE TO MAKE THE DEFAULT SIZES A BIT HEFTIER.
   if(is.null(.partial_match_user_arg(dot_args, "size")) &&
@@ -760,15 +787,15 @@ geom_point_plus_shapes = function() {
                   size = 10, stroke = 1)+
   ggplot2::theme_minimal() +
   ggplot2::lims(y=c(0.5, 3.5), x = c(0.4, 3)) +
-  ggplot2::annotate("text", x = 0.8, y = 1, label = "Closed\nrounded\nuncrossed", size = 5) +
-  ggplot2::annotate("text", x = 0.8, y = 2, label = "Closed\npointed\nuncrossed", size = 5) +
-  ggplot2::annotate("text", x = 0.8, y = 3, label = "Closed\nrounded\ncrossed", size = 5) +
-  ggplot2::annotate("text", x = 1.8, y = 1, label = "Open\npointed\nuncrossed", size = 5) +
-  ggplot2::annotate("text", x = 1.82, y = 2, label = "Intermediate", size = 5) +
-  ggplot2::annotate("text", x = 1.8, y = 3, label = "Closed\npointed\ncrossed", size = 5) +
-  ggplot2::annotate("text", x = 2.8, y = 1, label = "Open\nrounded\nuncrossed", size = 5) +
-  ggplot2::annotate("text", x = 2.8, y = 2, label = "Open\npointed\ncrossed", size = 5) +
-  ggplot2::annotate("text", x = 2.8, y = 3, label = "Open\nrounded\ncrossed", size = 5) +
+  ggplot2::annotate("text", x = 0.8, y = 1, label = "Closed\nRounded\nUncrossed", size = 4) +
+  ggplot2::annotate("text", x = 0.8, y = 2, label = "Closed\nPointed\nUncrossed", size = 4) +
+  ggplot2::annotate("text", x = 0.8, y = 3, label = "Closed\nRounded\nCrossed", size = 4) +
+  ggplot2::annotate("text", x = 1.8, y = 1, label = "Open\nPointed\nUncrossed", size = 4) +
+  ggplot2::annotate("text", x = 1.82, y = 2, label = "Intermediate", size = 4) +
+  ggplot2::annotate("text", x = 1.8, y = 3, label = "Open\nPointed\nCrossed", size = 4) +
+  ggplot2::annotate("text", x = 2.8, y = 1, label = "Open\nRounded\nUncrossed", size = 4) +
+  ggplot2::annotate("text", x = 2.8, y = 2, label = "Closed\nPointed\nCrossed", size = 4) +
+  ggplot2::annotate("text", x = 2.8, y = 3, label = "Open\nRounded\nCrossed", size = 4) +
   ggplot2::theme(legend.position = "none",
                  axis.text = ggplot2::element_blank(),
                  axis.title = ggplot2::element_blank(),
@@ -777,15 +804,15 @@ geom_point_plus_shapes = function() {
                  axis.title.x = ggplot2::element_blank(),
                  axis.title.y = ggplot2::element_blank(),
                  panel.grid = ggplot2::element_blank()) +
-  ggplot2::annotate("text", x = 0.5, y = 0.75, label = "squircle", size = 5, fontface = 'bold') +
-  ggplot2::annotate("text", x = 0.5, y = 1.75, label = "octagon", size = 5, fontface = 'bold') +
-  ggplot2::annotate("text", x = 0.5, y = 2.75, label = "flower", size = 5, fontface = 'bold') +
-  ggplot2::annotate("text", x = 1.5, y = 0.75, label = "economy", size = 5, fontface = 'bold') +
-  ggplot2::annotate("text", x = 1.5, y = 1.75, label = "plus", size = 5, fontface = 'bold') +
-  ggplot2::annotate("text", x = 1.5, y = 2.75, label = "waffle", size = 5, fontface = 'bold') +
-  ggplot2::annotate("text", x = 2.5, y = 0.75, label = "oval", size = 5, fontface = 'bold') +
-  ggplot2::annotate("text", x = 2.5, y = 1.75, label = "sunburst", size = 5, fontface = 'bold') +
-  ggplot2::annotate("text", x = 2.5, y = 2.75, label = "lotus", size = 5, fontface = 'bold')
+  ggplot2::annotate("text", x = 0.5, y = 0.7, label = "squircle", size = 5, fontface = 'bold') +
+  ggplot2::annotate("text", x = 0.5, y = 1.7, label = "octagon", size = 5, fontface = 'bold') +
+  ggplot2::annotate("text", x = 0.5, y = 2.7, label = "flower", size = 5, fontface = 'bold') +
+  ggplot2::annotate("text", x = 1.5, y = 0.7, label = "economy", size = 5, fontface = 'bold') +
+  ggplot2::annotate("text", x = 1.5, y = 1.7, label = "plus", size = 5, fontface = 'bold') +
+  ggplot2::annotate("text", x = 1.5, y = 2.7, label = "waffle", size = 5, fontface = 'bold') +
+  ggplot2::annotate("text", x = 2.5, y = 0.7, label = "oval", size = 5, fontface = 'bold') +
+  ggplot2::annotate("text", x = 2.5, y = 1.7, label = "sunburst", size = 5, fontface = 'bold') +
+  ggplot2::annotate("text", x = 2.5, y = 2.7, label = "lotus", size = 5, fontface = 'bold')
 }
 
 

@@ -39,6 +39,14 @@ S7::method(update_ggplot, #REGISTER A NEW SPECIFIC VERSION OF THE GENERIC UPDATE
            list(GridlinesPlus, ggplot2::class_ggplot)) <- function(object, plot, ...) { #NOTE THAT THE SYNTAX HERE WITH THE ARROW OPERATOR IS ESSENTIAL
     plot = .ensure_ggplotplus_plot(plot) #ALWAYS RUN FIRST TO MAKE SURE GGPlotPlus_State exists
     plot@ggplotplus@grid = object #THE OBJECT IS THE INCOMING BITS AND BOBS FROM gridlines_plus. SINCE ITS A CLEARLY DEFINED S7 CLASS OBJECT ALREADY, WE USE @ TO REFER TO IT AND ALSO HAVE NO NEED TO UNPACK IT HERE.
+
+    if(is.null(plot@ggplotplus@general_intents$override_legend_alphasize) || plot@ggplotplus@general_intents$override_legend_alphasize) { #THIS ENSURES ANY FALSE PERPETUATES.
+      plot@ggplotplus@general_intents$override_legend_alphasize = object@override_legend_alphasize
+    }
+    if(is.null(plot@ggplotplus@general_intents$enable_coaching) ||
+       plot@ggplotplus@general_intents$enable_coaching) {
+      plot@ggplotplus@general_intents$enable_coaching = object@enable_coaching
+    }
     return(plot)
 }
 
@@ -63,6 +71,14 @@ S7::method(update_ggplot,
   }
 
   plot@ggplotplus@y_axis_title = object
+  if(is.null(plot@ggplotplus@general_intents$override_legend_alphasize) ||
+     plot@ggplotplus@general_intents$override_legend_alphasize) { #THIS ENSURES ANY FALSE PERPETUATES.
+    plot@ggplotplus@general_intents$override_legend_alphasize = object@override_legend_alphasize
+  }
+  if(is.null(plot@ggplotplus@general_intents$enable_coaching) ||
+     plot@ggplotplus@general_intents$enable_coaching) {
+    plot@ggplotplus@general_intents$enable_coaching = object@enable_coaching
+  }
   return(plot)
 }
 
@@ -85,6 +101,14 @@ S7::method(update_ggplot,
 
              plot@ggplotplus@theme = object
 
+             if(is.null(plot@ggplotplus@general_intents$override_legend_alphasize) || plot@ggplotplus@general_intents$override_legend_alphasize) { #THIS ENSURES ANY FALSE PERPETUATES.
+               plot@ggplotplus@general_intents$override_legend_alphasize = object@override_legend_alphasize
+             }
+             if(is.null(plot@ggplotplus@general_intents$enable_coaching) ||
+                plot@ggplotplus@general_intents$enable_coaching) {
+               plot@ggplotplus@general_intents$enable_coaching = object@enable_coaching
+             }
+
              return(plot)
 }
 
@@ -105,6 +129,47 @@ S7::method(update_ggplot,
 #' @keywords internal
 #' @noRd
 S7::method(ggplot_build, GGPlotPlusPlot) <- function(plot, ...) {
+
+
+  ###ALPHA/SIZE LEGEND OVERRIDES OPERATIONS
+  #INTENT: WHEN A USER HAS A LEGEND FOR SHAPE, FILL, AND/OR COLOR, AND THEY SET SIZE AND/OR ALPHA TO SMALL VALUES, THESE SMALL VALUES ALSO APPLY *UNNECESSARILY* TO THE KEYS IN THE LEGEND, MAKING THEM HARDER TO READ.
+  #HERE, WE DETERMINE IF SUCH ANY OF THE FORMER SCALES HAVE BEEN MAPPED AND OVERRIDE THE DEFAULT AES FOR THE LEGEND KEYS FOR THOSE SCALES FOR ALL AESTHETICS WITHIN C("ALPHA", "SIZE") THAT HAVEN'T ALSO BEEN MAPPED, UNLESS THE USER HAS REQUESTED WE DON'T.
+
+  should_we_override = plot@ggplotplus@general_intents$override_legend_alphasize
+  if(should_we_override) { #<--FAIL EARLY
+
+    #CHECK FOR MAPPED SCALES
+  has_fill_mapped = .plot_has_mapped_aes(plot, c("fill")) #<--GO SEE MIDDLEWARE.R FOR THIS HELPER.
+  has_colour_mapped = .plot_has_mapped_aes(plot, c("colour"))
+  has_shape_mapped = .plot_has_mapped_aes(plot, c("shape"))
+  has_alpha_mapped = .plot_has_mapped_aes(plot, c("alpha"))
+  has_size_mapped = .plot_has_mapped_aes(plot, c("size"))
+
+  if(any(has_fill_mapped, has_colour_mapped, has_shape_mapped) && #YES, WE HAVE THESE.
+     any(!has_alpha_mapped, !has_size_mapped) #AND WE LACK AT LEAST ONE OF THESE.
+  ) {
+
+    override_list = list()
+    if(!has_alpha_mapped) {
+      override_list$alpha = 1 #ADD SIZE AND/OR ALPHA AS APPROPRIATE
+    }
+    if(!has_size_mapped) {
+      override_list$size = 5
+    }
+
+    #THEN, SELECTIVELY OVERRIDE RELEVANT LEGENDS.
+    if(length(override_list) > 0) {
+      if(has_fill_mapped &&
+         !.guide_is_none_for_aes(plot, "fill")) { plot = plot + ggplot2::guides(fill = .merge_legend_override(plot, "fill", override_list)) }
+      if(has_colour_mapped &&
+         !.guide_is_none_for_aes(plot, "colour")) { plot = plot + ggplot2::guides(colour = .merge_legend_override(plot, "colour", override_list)) }
+      if(has_shape_mapped &&
+         !.guide_is_none_for_aes(plot, "shape")) { plot = plot + ggplot2::guides(shape = .merge_legend_override(plot, "shape", override_list)) }
+    }
+
+   }
+  }#/END OVERRIDING LEGEND DEFAULTS FOR SIZE/ALPHA
+
 
    ###THEME PLUS GEOM DEFAULTS OPERATIONS
   if(.s7_prop_is_true(plot@ggplotplus@theme, "applyGeomDefaults")) {
@@ -185,6 +250,65 @@ S7::method(ggplot_build, GGPlotPlusPlot) <- function(plot, ...) {
       built$plot = built$plot + grid_theme
 
     } #END GRIDLINES_PLUS OPERATIONS
+
+
+    should_we_coach = plot@ggplotplus@general_intents$enable_coaching &&
+      .ggplotplus_coaching_enabled()
+
+    if(should_we_coach) {
+
+
+    ###GUIDING MESSAGES CONCERNING OVER-RELIANCE ON DISCRETE SHAPES/COLORS
+    #***I THINK THIS WORKS, BUT IT LOOKS LIKE USING ggplot2::get_guide_data() COULD MAYBE HAVE BEEN EASIER.
+    plot_scales = built@plot@scales$scales
+    discrete_plus_FCS = Filter(function(x) { inherits(x, "ScaleDiscrete") &&
+                                         any(c("fill", "colour", "shape") %in% x$aesthetics) }, plot_scales)
+
+    warned_colour_fill = FALSE
+
+    if(length(discrete_plus_FCS)) {
+      for(i in 1:length(discrete_plus_FCS)) {
+        uniqVals = length(unique(discrete_plus_FCS[[i]]$range$range))
+        if(any(c("fill", "colour") %in% discrete_plus_FCS[[i]]$aesthetics) &&
+           uniqVals > 7 &&
+           warned_colour_fill == FALSE) {
+          message("\nNote: You've mapped color and/or fill to a discrete variable with > 7 levels. This is not recommended. Even when using a color palette designed for maximum contrast and discernability (such as viridis), most humans are not able to readily distinguish all colors from one another in any palette beyond about 7 colors. Consider using a different visual channel, filtering or consolidating to a smaller number of levels, or layering on a second visual channel (such as shape or line type). Alternatively, consider shuffling the color values to make dissimilar colors appear nearer to one another to facilitate comparisons. Set enable_coaching to FALSE to disable these messages.")
+          warned_colour_fill = TRUE
+        }
+        if("shape" %in% discrete_plus_FCS[[i]]$aesthetics &&
+           uniqVals > 9) {
+          message("\nNote: You've mapped shape to a discrete variable with > 9 levels. This is not recommended. Even when using a shape palette designed for maximum contrast and discernability (such as that available via geom_point_plus()), most humans are not able to readily distinguish all shapes from one another in any palette beyond about 9 shapes. Consider using a different visual channel, filtering or consolidating to a smaller number of levels, or layering on a second visual channel (such as color or angle of orientation). Alternatively, consider shuffling the shape values to make dissimilar shapes appear nearer to one another to facilitate comparisons. Set enable_coaching to FALSE to disable these messages.")
+        }
+      }
+    }
+
+    ###GUIDING MESSAGES AROUND RENAMING SCALES TO BE MORE INFORMATIVE
+    plot_labs = ggplot2::get_labs(built)
+    plot_labs = plot_labs[vapply(plot_labs, is.character, logical(1))]
+    plot_labs = unlist(plot_labs, use.names = TRUE)
+
+    scale_labs = intersect(
+      names(plot_labs),
+      c("x", "y", "colour", "color", "fill", "shape", "size", "alpha",
+        "linetype", "linewidth")
+    )
+
+    data_names = .plot_data_names(built@plot)
+
+    unchanged_labs = scale_labs[plot_labs[scale_labs] %in% data_names]
+
+    length_these = length(unchanged_labs)
+
+    if(length_these) {
+      combined = ifelse(length_these == 1, unchanged_labs, paste0(unchanged_labs, collapse = " and "))
+
+      message(sprintf(
+        "\nNote: For your %s scale(s), you didn't apparently set a title different than the name of the column mapped to that scale. This is not generally recommended. Column names tend to be machine- rather than human-readable, lack typical spacing, capitalization, and punctuation usage, and they tend to lack units. Consider using ggplot2::labs() to provide these scales with new, human-readable and informative titles. Set enable_coaching to FALSE to disable these messages.",
+        combined
+      ))
+    }
+
+    } #/END COACHING SECTION
 
 
     #REGISTERING INTENT TO MOVE ALONG TO THE GTABLE METHOD FOR YAXIS TITLE PLUS AS NEEDED.

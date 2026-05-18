@@ -9,7 +9,9 @@ gridlines_plus(
   linewidth = 1.2,
   linetype = "solid",
   notx = FALSE,
-  noty = FALSE
+  noty = FALSE,
+  override_legend_alphasize = TRUE,
+  enable_coaching = TRUE
 )
 }
 \arguments{
@@ -20,6 +22,10 @@ gridlines_plus(
 \item{linetype}{Gridline type. Single string (e.g., \code{"solid"}, \code{"dashed"}).}
 
 \item{notx, noty}{Logicals indicating whether gridlines should not be drawn in a specific direction (i.e., the user wants those to be blank even when the axis is continuous). Default to FALSE (gridlines are added).}
+
+\item{override_legend_alphasize}{Logical indicating whether, for any fill, color, and/or shape legends, to override the size and/or alpha values to the ggplotplus default values (1 and 5, respectively). Defaults to TRUE.}
+
+\item{enable_coaching}{Logical indicating whether ggplotplus should perform certain automated checks for possible non-Universal graph design and provide coaching messages when these are detected. Defaults to TRUE.}
 }
 \value{
 An ggplot class object for adding to a plot with \code{+}.

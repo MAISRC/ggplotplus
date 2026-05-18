@@ -388,7 +388,11 @@ geom_plus_defaults = list(
   el = ggplot2::calc_element(title_element_name, data$plot$theme)
   gp = .ggplus_element_to_gpar(el) #JUST TRANSLATES THEME ARG NAMES TO GPAR ARG NAMES.
 
-  vjust_val = 0.5
+  if(location == "top") {
+    vjust_val = 0
+  } else {
+    vjust_val = 1
+  }
 
   #ACTUALLY ADD THE GROB
   gt = gtable::gtable_add_grob(
@@ -603,7 +607,7 @@ geom_plus_defaults = list(
 
 #' Legend-Position Theme Conditional Logic
 #'
-#' Builds a small theme fragment for customizing `"top"` vs `"right"` legends.
+#' Builds a small theme fragment for customizing `"top"` vs `"right"` vs `"bottom"` legends.
 #'
 #' @inheritParams theme_plus
 #' @return A ggplot2 theme object.
@@ -639,6 +643,21 @@ geom_plus_defaults = list(
       legend.key.spacing.y = ggplot2::unit(0.5, "cm"),
       legend.position = "right",
       legend.direction = "vertical")
+  } else if(legend_pos == "bottom") {
+    ggplot2::theme(
+      legend.key.width = ggplot2::unit(1.5, "cm"),
+      legend.key.height = ggplot2::unit(0.8, "cm"),
+      legend.title = ggplot2::element_text(margin = ggplot2::margin(l = 15)),
+      legend.margin = ggplot2::margin(t = 5, r = 5, b = 5, l = 5),
+      plot.margin = ggplot2::margin(t = 5, r = 5, b = 5, l = 5),
+      legend.box.just = "right",
+      legend.justification = "right",
+      legend.key.justification = "right",
+      legend.title.position = "right",
+      legend.key.spacing.x = ggplot2::unit(0.5, "cm"),
+      legend.position = "bottom",
+      legend.direction = "horizontal"
+    )
   }
 }
 
@@ -922,4 +941,216 @@ geom_plus_defaults = list(
   }
 
   isTRUE(S7::prop(object, prop))
+}
+
+#' Check whether a plot maps one or more aesthetics
+#'
+#' Internal helper that checks whether any layer in a ggplot object maps one
+#' or more requested aesthetics, either directly in the layer mapping or through
+#' inherited plot-level mappings.
+#'
+#' This is used before plot building to determine whether an aesthetic such as
+#' \code{alpha} or \code{size} is being mapped explicitly, in which case
+#' ggplotplus should avoid overriding that aesthetic in legend keys.
+#'
+#' @param plot A ggplot object.
+#' @param aes_name A character vector of aesthetic names to check.
+#'
+#' @return A logical scalar. Returns \code{TRUE} if any requested aesthetic is
+#'   mapped in any layer, including through inherited global mappings.
+#'
+#' @keywords internal
+.plot_has_mapped_aes = function(plot, aes_name) {
+
+  plot_mapping = plot@mapping
+
+  any(vapply(plot@layers, function(layer) {
+
+    layer_maps_aes = !is.null(layer$mapping[[aes_name]])
+
+    inherits_plot_mapping =
+      isTRUE(layer$inherit.aes) &&
+      !is.null(plot_mapping[[aes_name]])
+
+    layer_maps_aes || inherits_plot_mapping
+
+  }, logical(1)))
+}
+
+#' Check whether a scale suppresses a guide
+#'
+#' Internal helper that checks whether a plot contains a scale for a given
+#' aesthetic with \code{guide = "none"}.
+#'
+#' This is used to preserve user intent when ggplotplus applies automatic legend
+#' key overrides. If a user has explicitly suppressed a guide through a scale,
+#' ggplotplus should not reintroduce that guide.
+#'
+#' @param plot A ggplot object.
+#' @param aes_name A single character string giving the aesthetic name to check.
+#'
+#' @return A logical scalar. Returns \code{TRUE} if a matching scale has
+#'   \code{guide = "none"}; otherwise returns \code{FALSE}.
+#'
+#' @keywords internal
+.has_guide_none_for_aes = function(plot, aes_name) {
+
+  scales = plot@scales$scales
+
+  any(vapply(scales, function(scale) {
+
+    aes_name %in% scale$aesthetics &&
+      identical(scale$guide, "none")
+
+  }, logical(1)))
+}
+
+#' Check whether plot-level guides suppress an aesthetic
+#'
+#' Internal helper that checks whether a plot-level guide specification suppresses
+#' the guide for a given aesthetic, such as through
+#' \code{guides(fill = "none")}.
+#'
+#' This complements the scale-level guide checker above, because guide
+#' suppression can be declared either on a scale or through \code{guides()}.
+#'
+#' @param plot A ggplot object.
+#' @param aes_name A single character string giving the aesthetic name to check.
+#'
+#' @return A logical scalar. Returns \code{TRUE} if the plot-level guide for the
+#'   aesthetic is \code{"none"} or a \code{GuideNone} object.
+#'
+#' @keywords internal
+.has_plot_guide_none_for_aes = function(plot, aes_name) {
+
+  guide = plot@guides$get_guide(aes_name)
+
+  identical(guide, "none") ||
+    inherits(guide, "GuideNone")
+}
+
+#' Check whether a guide is suppressed for an aesthetic
+#'
+#' Internal helper that checks both scale-level and plot-level guide declarations
+#' to determine whether the guide for a given aesthetic has been explicitly
+#' suppressed.
+#'
+#' This is used before adding ggplotplus legend-key overrides so that suppressed
+#' legends are not accidentally restored.
+#'
+#' @param plot A ggplot object.
+#' @param aes_name A single character string giving the aesthetic name to check.
+#'
+#' @return A logical scalar. Returns \code{TRUE} if the guide is suppressed
+#'   either through a scale or through \code{guides()}.
+#'
+#' @keywords internal
+.guide_is_none_for_aes = function(plot, aes_name) {
+  .has_guide_none_for_aes(plot, aes_name) ||
+    .has_plot_guide_none_for_aes(plot, aes_name)
+}
+
+
+#' Merge ggplotplus legend-key overrides with an existing guide
+#'
+#' Internal helper that merges ggplotplus legend-key defaults with any
+#' user-specified \code{override.aes} values for a guide.
+#'
+#' ggplotplus uses this helper to improve legend readability by overriding
+#' non-semantic, hard-to-read, constant \code{alpha} and \code{size} values in
+#' legend keys. Existing user overrides are preserved and take precedence over
+#' ggplotplus defaults for positive UX.
+#'
+#' @param plot A ggplot object.
+#' @param aes_name A single character string giving the aesthetic whose guide
+#'   should be modified.
+#' @param override_list A named list of ggplotplus legend-key overrides, such as
+#'   \code{list(alpha = 1, size = 5)}.
+#'
+#' @return A guide object. If no guide exists for \code{aes_name}, returns a new
+#'   \code{ggplot2::guide_legend()} using \code{override_list}. If a guide
+#'   exists, returns a copy with merged \code{override.aes} values, where
+#'   existing user values win over ggplotplus defaults.
+#'
+#' @keywords internal
+.merge_legend_override = function(plot, aes_name, override_list) {
+
+  guide = plot@guides$guides[[aes_name]]
+
+  if(is.null(guide) || inherits(guide, "GuideNone") || identical(guide, "none")) {
+    return(ggplot2::guide_legend(override.aes = override_list))
+  }
+
+  old_override = guide$params$override.aes
+
+  if(is.null(old_override)) {
+    old_override = list()
+  }
+
+  guide$params$override.aes = utils::modifyList(
+    override_list,
+    old_override
+  )
+
+  guide
+}
+
+
+#' Collect column names from plot- and layer-level data
+#'
+#' Internal helper that gathers column names from all data frames associated
+#' with a ggplot object, including both plot-level data and any layer-specific
+#' data.
+#'
+#' ggplotplus uses this helper when evaluating whether scale titles appear to
+#' still use raw column names, which may indicate that user-facing labels have
+#' not yet been customized with \code{ggplot2::labs()}.
+#'
+#' @param plot A ggplot object.
+#'
+#' @return A character vector of unique column names found across the plot-level
+#'   and layer-level data frames associated with the plot.
+#'
+#' @keywords internal
+.plot_data_names = function(plot) {
+
+  data_names = character(0)
+
+  if(is.data.frame(plot@data)) {
+    data_names = c(data_names, names(plot@data))
+  }
+
+  for(layer in plot@layers) {
+    if(is.data.frame(layer$data)) {
+      data_names = c(data_names, names(layer$data))
+    }
+  }
+
+  unique(data_names)
+}
+
+#' Check whether ggplotplus coaching messages are enabled
+#'
+#' Internal helper that checks the session-level ggplotplus coaching option.
+#'
+#' ggplotplus uses this helper to determine whether advisory or educational
+#' messages ("coaching") should be displayed during plot construction. Coaching
+#' messages can be globally enabled or disabled for the current R session using:
+#'
+#' \preformatted{
+#' options(ggplotplus.enable_coaching = TRUE)
+#' options(ggplotplus.enable_coaching = FALSE)
+#' }
+#'
+#' User-facing ggplotplus functions additionally expose local
+#' \code{enable_coaching} arguments; both the local setting and the global
+#' option must evaluate to \code{TRUE} for coaching messages to appear.
+#'
+#' @return A logical scalar. Returns \code{TRUE} if coaching messages are
+#'   globally enabled for the current R session; otherwise returns
+#'   \code{FALSE}.
+#'
+#' @keywords internal
+.ggplotplus_coaching_enabled = function() {
+  isTRUE(getOption("ggplotplus.enable_coaching", TRUE))
 }

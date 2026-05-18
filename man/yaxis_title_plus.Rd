@@ -7,7 +7,9 @@
 yaxis_title_plus(
   location = "top",
   nudgeTopLegendDown = FALSE,
-  nudgeHowMuch = 20
+  nudgeHowMuch = 20,
+  override_legend_alphasize = TRUE,
+  enable_coaching = TRUE
 )
 }
 \arguments{
@@ -16,6 +18,10 @@ yaxis_title_plus(
 \item{nudgeTopLegendDown}{A length-1 logical indicating whether a top legend (box) (if any) should be moved down to align with the relocated y axis title (where they could clip into each other). Defaults to FALSE.}
 
 \item{nudgeHowMuch}{A length-1 positive integer indicating how much to nudge the top legend (box) (if any) down, if \code{nudgeTopLegendDown} == \code{TRUE}. Defaults to \code{20} points as a general guess and may need adjusting.}
+
+\item{override_legend_alphasize}{Logical indicating whether, for any fill, color, and/or shape legends, to override the size and/or alpha values to the ggplotplus default values (1 and 5, respectively). Defaults to TRUE.}
+
+\item{enable_coaching}{Logical indicating whether ggplotplus should perform certain automated checks for possible non-Universal graph design and provide coaching messages when these are detected. Defaults to TRUE.}
 }
 \value{
 An ggplot class object for adding to a plot with \code{+}.
