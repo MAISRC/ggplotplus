@@ -20,7 +20,9 @@ date: today
 version: "0.5.3"
 ---
 
-# *ggplotplus* -- <img src="man/figures/ggplotplus_hex.png" align="right" width="180" alt="ggplotplus hex sticker" zindex = >Universal Design additions for *ggplot2*
+<img src="man/figures/ggplotplus_hex.png" style="float: right; width: 180px;" alt="ggplotplus hex sticker">
+
+# *ggplotplus* -- Universal Design additions for *ggplot2*
 
 ## Quick Start Guide
 
@@ -52,6 +54,7 @@ Once loaded, you can start layering its `_plus()` tools onto your `ggplot2` call
 To access changes to `ggplot2`'s default design choices related to default color palettes, common geometry layers, and theme specifications, just add `theme_plus()` to your `ggplot2` calls:
 
 ```{r quick start use}
+#| warning: false
 ggplot(iris, 
        mapping = aes(x = Petal.Length, 
                      y = Sepal.Length)) +
@@ -64,6 +67,7 @@ ggplot(iris,
 If you want to add thoughtful gridlines, bolster your continuous scales, and/or move your y-axis title to somewhere more thoughtful, add `gridlines_plus()`, `scale_continuous_plus()`, and `yaxis_title_plus()` to your ggplot calls, respective:
 
 ```{r even more tools}
+#| warning: false
 ggplot(iris, 
        mapping = aes(x = Petal.Length, 
                      y = Sepal.Length)) +
@@ -86,6 +90,7 @@ ggplot(iris,
 `ggplotplus` also introduces a new palette of shapes designed to be more distinctive than the base point shapes available in R, accessible using `geom_point_plus()`:
 
 ```{r new shapes}
+#| warning: false
 ggplot(iris, 
        mapping = aes(x = Petal.Length, 
                      y = Sepal.Length)) +

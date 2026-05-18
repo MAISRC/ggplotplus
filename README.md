@@ -3,7 +3,9 @@ Dr. Alex Bajcz, Quantitative Ecologist, Minnesota Aquatic Invasive
 Species Research Center
 2026-05-18
 
-# *ggplotplus* – <img src="man/figures/ggplotplus_hex.png" align="right" width="180" alt="ggplotplus hex sticker" zindex = >Universal Design additions for *ggplot2*
+<img src="man/figures/ggplotplus_hex.png" style="float: right; width: 180px;" alt="ggplotplus hex sticker">
+
+# *ggplotplus* – Universal Design additions for *ggplot2*
 
 ## Quick Start Guide
 
@@ -39,9 +41,6 @@ ggplot(iris,
   geom_point(mapping = aes(color = Species)) + 
   theme_plus() #<--OVERHAULS THEME, GEOM, AND PALETTE RELATED DEFAULTS IN MANY WAYS. 
 ```
-
-
-    Note: For your colour and x and y scale(s), you didn't apparently set a title different than the name of the column mapped to that scale. This is not generally recommended. Column names tend to be machine- rather than human-readable, lack typical spacing, capitalization, and punctuation usage, and they tend to lack units. Consider using ggplot2::labs() to provide these scales with new, human-readable and informative titles. Set enable_coaching to FALSE to disable these messages.
 
 ![](README_files/figure-commonmark/quick%20start%20use-1.png)
 
@@ -102,8 +101,6 @@ ggplot(iris,
   labs(fill = expression(italic("Iris")*" species"), #<--WE NEED BOTH SCALES TO MATCH IN NAME EXACTLY FOR THEM TO COLLAPSE INTO 1.
        shape = expression(italic("Iris")*" species"))
 ```
-
-    Warning: Duplicated `override.aes` is ignored.
 
 ![](README_files/figure-commonmark/new%20shapes-1.png)
 
