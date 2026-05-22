@@ -638,7 +638,9 @@ geom_point_plus = function(mapping = NULL,
 
   #BUILD THE LEGEND IF WE'RE GOING TO, BUT ONLY PUT IN TITLE IF THE USER PROVIDED ONE.
   guide_obj = if(isTRUE(include_shape_legend)) {
-    ggplot2::guide_legend(override.aes = list(size = key_size))
+    ggplot2::guide_legend(
+      override.aes = list(size = key_size)
+      )
   } else {
     "none"
   }
@@ -936,4 +938,87 @@ add_shape_plus = function(name = NULL,
   }
 
   invisible(name) #AN INVISIBLE RETURN FOR SAFETY.
+}
+
+
+#' Convert a ggplotplus plot into a grob
+#'
+#' Convenience helper for converting ggplotplus plot objects into grobs using
+#' \code{ggplot2::ggplotGrob()}.
+#'
+#' This is primarily intended for compatibility with packages such as
+#' \pkg{cowplot} that may not yet fully recognize custom S7 plot subclasses
+#' during internal dispatch.
+#'
+#' @param plot A ggplot or ggplotplus plot object.
+#'
+#' @return A grob object suitable for use with grid-based plotting utilities
+#'   such as \code{cowplot::plot_grid()}.
+#'
+#' @examples
+#' p = ggplot2::ggplot(iris, ggplot2::aes(Sepal.Length, Petal.Length, colour = Species)) +
+#'   geom_point_plus()
+#'
+##' if(requireNamespace("cowplot", quietly = TRUE)) {
+#'
+#' cowplot::plot_grid(
+#'   ggplotplus_to_cowplot(p),
+#'   ggplotplus_to_cowplot(p)
+#' )
+#' }
+#'
+#' @export
+ggplotplus_to_cowplot = function(plot) {
+  ggplot2::ggplotGrob(plot)
+}
+
+
+#' Convert a ggplotplus plot into a patchwork-compatible element
+#'
+#' Convenience helper for converting ggplotplus plot objects into
+#' patchwork-compatible wrapped elements.
+#'
+#' This helper is primarily intended for compatibility with \pkg{patchwork},
+#' whose plot-composition operators may not yet fully recognize custom S7
+#' plot subclasses under ggplot2 4.x.
+#'
+#' Internally, the plot is first converted into a grob using
+#' \code{ggplotplus_to_cowplot()}, then wrapped using
+#' \code{patchwork::wrap_elements()}.
+#'
+#' @param plot A ggplot or ggplotplus plot object.
+#'
+#' @return A patchwork-compatible wrapped plot element.
+#'
+#' @examples
+#' if(requireNamespace("patchwork", quietly = TRUE)) {
+#'
+#' p1 = ggplot2::ggplot(iris, ggplot2::aes(Sepal.Length, Petal.Length, colour = Species)) +
+#'   geom_point_plus()
+#'
+#' p2 = ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg, shape = factor(cyl))) +
+#'   geom_point_plus()
+#'
+#' (ggplotplus_to_patchwork(p1) |
+#'   ggplotplus_to_patchwork(p2)) +
+#'   patchwork::plot_annotation(
+#'     title = "ggplotplus + patchwork"
+#'   )
+#' }
+#' @details
+#' This helper requires the \pkg{patchwork} package, but ggplotplus does not
+#' import patchwork. Users only need patchwork installed if they want to compose
+#' ggplotplus plots with patchwork.
+#' @export
+ggplotplus_to_patchwork = function(plot) {
+
+  if(!requireNamespace("patchwork", quietly = TRUE)) {
+    stop(
+      "`ggplotplus_to_patchwork()` requires the patchwork package. ",
+      "Install it with `install.packages(\"patchwork\")`.",
+      call. = FALSE
+    )
+  }
+
+  patchwork::wrap_elements(full = ggplotplus_to_cowplot(plot))
 }

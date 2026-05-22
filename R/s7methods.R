@@ -136,7 +136,8 @@ S7::method(ggplot_build, GGPlotPlusPlot) <- function(plot, ...) {
   #HERE, WE DETERMINE IF SUCH ANY OF THE FORMER SCALES HAVE BEEN MAPPED AND OVERRIDE THE DEFAULT AES FOR THE LEGEND KEYS FOR THOSE SCALES FOR ALL AESTHETICS WITHIN C("ALPHA", "SIZE") THAT HAVEN'T ALSO BEEN MAPPED, UNLESS THE USER HAS REQUESTED WE DON'T.
 
   should_we_override = plot@ggplotplus@general_intents$override_legend_alphasize
-  if(should_we_override) { #<--FAIL EARLY
+  if(should_we_override &&
+     !isTRUE(plot@ggplotplus@general_intents$legend_alphasize_override_applied)) { #<--FAIL EARLY
 
     #CHECK FOR MAPPED SCALES
   has_fill_mapped = .plot_has_mapped_aes(plot, c("fill")) #<--GO SEE MIDDLEWARE.R FOR THIS HELPER.
@@ -159,15 +160,58 @@ S7::method(ggplot_build, GGPlotPlusPlot) <- function(plot, ...) {
 
     #THEN, SELECTIVELY OVERRIDE RELEVANT LEGENDS.
     if(length(override_list) > 0) {
-      if(has_fill_mapped &&
-         !.guide_is_none_for_aes(plot, "fill")) { plot = plot + ggplot2::guides(fill = .merge_legend_override(plot, "fill", override_list)) }
-      if(has_colour_mapped &&
-         !.guide_is_none_for_aes(plot, "colour")) { plot = plot + ggplot2::guides(colour = .merge_legend_override(plot, "colour", override_list)) }
-      if(has_shape_mapped &&
-         !.guide_is_none_for_aes(plot, "shape")) { plot = plot + ggplot2::guides(shape = .merge_legend_override(plot, "shape", override_list)) }
+
+      target_aes = character(0)
+
+      #FIGURE OUT WHICH OUT OF FILL, COLOUR, AND SHAPE ARE BEING MAPPED...
+      if(has_fill_mapped && !.guide_is_none_for_aes(plot, "fill")) {
+        target_aes = c(target_aes, "fill")
+      }
+
+      if(has_colour_mapped && !.guide_is_none_for_aes(plot, "colour")) {
+        target_aes = c(target_aes, "colour")
+      }
+
+      if(has_shape_mapped && !.guide_is_none_for_aes(plot, "shape")) {
+        target_aes = c(target_aes, "shape")
+      }
+
+      if(length(target_aes) > 0) {
+
+        labs = sapply(plot@mapping, as_label) #FIGURE OUT THE CURRENT SCALE LAVELS
+
+        #JUNCTION THAT WITH THE LABELS OF THE TARGET AES SCALES.
+        target_labels = vapply(target_aes, function(aes_name) {
+          .get_prebuild_aes_label(plot, aes_name)
+        }, character(1))
+
+        #IF THE LABELS ARE DUPLICATED FOR ANY TWO OR MORE OF THESE SCALES, NO NEED TO OVERRIDE.AES FOR BOTH, AS THOSE SCALES ARE LIKELY TO COLLAPSE.
+        target_aes = target_aes[!duplicated(target_labels)]
+
+        #THEN APPLY THE OVERRIDE.AES OVERRIDES.
+        if("fill" %in% target_aes) {
+          plot = plot + ggplot2::guides(
+            fill = .merge_legend_override(plot, "fill", override_list)
+          )
+        }
+
+        if("colour" %in% target_aes) {
+          plot = plot + ggplot2::guides(
+            colour = .merge_legend_override(plot, "colour", override_list)
+          )
+        }
+
+        if("shape" %in% target_aes) {
+          plot = plot + ggplot2::guides(
+            shape = .merge_legend_override(plot, "shape", override_list)
+          )
+        }
+      }
     }
 
-   }
+  }
+  plot@ggplotplus@general_intents$legend_alphasize_override_applied = TRUE #MAKES THIS IDEMPOTENT TO ONLY RUN EVER THE ONCE, NO MATTER HOW MANY BUILDS OCCUR.
+
   }#/END OVERRIDING LEGEND DEFAULTS FOR SIZE/ALPHA
 
 
@@ -256,7 +300,6 @@ S7::method(ggplot_build, GGPlotPlusPlot) <- function(plot, ...) {
       .ggplotplus_coaching_enabled()
 
     if(should_we_coach) {
-
 
     ###GUIDING MESSAGES CONCERNING OVER-RELIANCE ON DISCRETE SHAPES/COLORS
     #***I THINK THIS WORKS, BUT IT LOOKS LIKE USING ggplot2::get_guide_data() COULD MAYBE HAVE BEEN EASIER.

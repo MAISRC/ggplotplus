@@ -1,4 +1,4 @@
-# ggplotplus 0.5.3
+# ggplotplus 0.5.4
 
 ## Main features
 
@@ -8,9 +8,10 @@
 * `gridlines_plus()` and `yaxis_title_plus()` helpers for thoughtful gridlines on continuous scales only and horizontally oriented y-axis titles, respectively.
 * `scale_continuous_plus()` for forcing labels near the endpoints of continuous scales.
 
-## Latest features (as of this version)
+## Latest features
 
 * Coaching messages for plots with too many requested discrete colour, fill, or shape values for easy distinguishability.
 * Coaching messages when scale titles appear to use raw column names instead of something potentially more human-readable.
 * Added a session-level option, `ggplotplus.enable_coaching`, to disable coaching messages globally.
 * Legend-key overrides so constant, low alpha and size settings do not unnecessarily reduce legend key symbol readability.
+* Helper functions supporting use of `ggplotplus` graphs with `cowplot` and `patchwork`. See `ggplotplus_to_*`. 

@@ -1,6 +1,8 @@
 library(ggplot2)
 library(ggplotplus)
 
+options(ggplotplus.enable_coaching = FALSE)
+
 test_plots = list()
 
 # 1. Basic scatter: point_plus + continuous x/y + y title + gridlines
@@ -138,7 +140,7 @@ test_plots$tile =
 # 14. Custom labels vector on scale_continuous_plus
 test_plots$custom_labels =
   ggplot(iris, aes(Sepal.Width, Sepal.Length)) +
-  geom_point_plus(shape = "cross") +
+  geom_point_plus(shape = "plus") +
   theme_plus() +
   gridlines_plus() +
   yaxis_title_plus() +
@@ -198,10 +200,10 @@ plot_build_results = lapply(names(test_plots), function(nm) {
 })
 
 # Optional visual pass
-# for(nm in names(test_plots)) {
-#   message("Printing: ", nm)
-#   print(test_plots[[nm]])
-# }
+for(nm in names(test_plots)) {
+  message("Printing: ", nm)
+  print(test_plots[[nm]])
+}
 
 # Optional save pass
 # dir.create("ggplotplus_test_outputs", showWarnings = FALSE)
@@ -214,3 +216,60 @@ plot_build_results = lapply(names(test_plots), function(nm) {
 #     dpi = 150
 #   )
 # }
+
+
+
+# add-on packages to ggplot2 ----------------------------------------------
+#
+# library(cowplot)
+# library(ggplotify)
+# library(aplot)
+#
+# p1 = ggplot(
+#   iris,
+#   aes(Sepal.Length, Petal.Length, colour = Species)
+# ) +
+#   geom_point_plus() +
+#   theme_plus()
+#
+# p1 = ggplotplus_to_cowplot(p1)
+#
+# p2 = ggplot(
+#   mtcars,
+#   aes(wt, mpg, shape = factor(cyl))
+# ) +
+#   geom_point_plus(size = 3) +
+#   theme_plus()
+#
+# p2 = ggplotplus_to_cowplot(p2)
+#
+# cowplot::plot_grid(
+#   p1, p2,
+#   labels = c("A", "B"),
+#   ncol = 2
+# )
+#
+# library(patchwork)
+#
+# p1 = ggplot(
+#   iris,
+#   aes(Sepal.Length, Petal.Length, fill = Species)
+# ) +
+#   geom_point_plus(shape = 21, size = 4) +
+#   theme_plus()
+#
+# p1 = ggplotplus_to_patchwork(p1)
+#
+# p2 = ggplot(
+#   mtcars,
+#   aes(wt, mpg, colour = factor(gear))
+# ) +
+#   geom_point_plus(size = 3) +
+#   theme_plus()
+#
+# p2 = ggplotplus_to_patchwork(p2)
+#
+# (ggplotplus_to_patchwork(p1) | ggplotplus_to_patchwork(p2)) +
+#   plot_annotation(
+#     title = "ggplotplus + patchwork test"
+#   )

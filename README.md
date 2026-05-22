@@ -1,9 +1,9 @@
 # README
 Dr. Alex Bajcz, Quantitative Ecologist, Minnesota Aquatic Invasive
 Species Research Center
-2026-05-18
+2026-05-22
 
-<img src="man/figures/ggplotplus_hex.png" style="float: right; width: 180px;" alt="ggplotplus hex sticker">
+<img src="man/figures/ggplotplus_hex.png" alt="ggplotplus hex sticker" style="float: right; width: 180px;"/>
 
 # *ggplotplus* – Universal Design additions for *ggplot2*
 
@@ -112,3 +112,10 @@ time fiddling with your graphs than you otherwise might.
 However, there’s a *lot* more to know! If you want to dive deeper,
 please [check out the full package
 guide](https://maisrc.github.io/ggplotplus/).
+
+## Development
+
+`ggplotplus` is currently under active development. Core functions are
+expected to remain relatively stable, but some parameters, features, and
+default settings may continue to evolve rapidly, and addressing bugs,
+inconsistencies, and gaps remains a high priority.

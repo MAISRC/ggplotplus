@@ -330,7 +330,7 @@ geom_plus_defaults = list(
   }
 
   #THEN, KILL THE EXISTING TITLE GROB IN THE GTABLE SO IT DOESN'T ALSO APPEAR.
-  kill_names = c("ylab-l")
+  kill_names = c("ylab-l", "ylab-r")
 
   kill_idx = which(gt$layout$name %in% kill_names)
   if(length(kill_idx) > 0) { #OVERWRITE THEM WITH ZEROGROBS.
@@ -1153,4 +1153,56 @@ geom_plus_defaults = list(
 #' @keywords internal
 .ggplotplus_coaching_enabled = function() {
   isTRUE(getOption("ggplotplus.enable_coaching", TRUE))
+}
+
+
+#' Retrieve the pre-build label for an aesthetic
+#'
+#' Internal helper that attempts to determine the eventual user-facing label
+#' associated with a mapped aesthetic before the plot has been formally built.
+#'
+#' The helper first checks for explicit labels supplied through
+#' \code{ggplot2::labs()} or related mechanisms. If no explicit label is found,
+#' it falls back to the mapped expression itself using
+#' \code{rlang::as_label()}.
+#'
+#' Both plot-level and layer-level mappings are searched.
+#'
+#' ggplotplus uses this helper during pre-build guide processing to identify
+#' aesthetics that are likely to collapse into a shared legend, such as when
+#' both \code{fill} and \code{shape} are mapped to the same variable.
+#'
+#' @param plot A ggplot object.
+#' @param aes_name A single character string giving the aesthetic whose
+#'   pre-build label should be retrieved.
+#'
+#' @return A character string representing the best available pre-build label
+#'   for the requested aesthetic.
+#'
+#' @keywords internal
+.get_prebuild_aes_label = function(plot, aes_name) {
+
+  lab = plot@labels[[aes_name]]
+
+  if(!is.null(lab)) {
+    return(as.character(lab))
+  }
+
+  if(!is.null(plot@mapping[[aes_name]])) {
+    return(rlang::as_label(plot@mapping[[aes_name]]))
+  }
+
+  for(layer in plot@layers) {
+
+    if(isTRUE(layer$inherit.aes) &&
+       !is.null(plot@mapping[[aes_name]])) {
+      return(rlang::as_label(plot@mapping[[aes_name]]))
+    }
+
+    if(!is.null(layer$mapping[[aes_name]])) {
+      return(rlang::as_label(layer$mapping[[aes_name]]))
+    }
+  }
+
+  aes_name
 }

@@ -9,4 +9,4 @@
 library(testthat)
 library(ggplotplus)
 
-testthat::test_check("ggplotplus")
+test_check("ggplotplus")

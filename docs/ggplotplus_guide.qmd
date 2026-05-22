@@ -24,7 +24,7 @@ execute:
   error: false              # Hide errors (set true if you want to show failures)
   freeze: auto              # Prevent re-running code unless it changes
 editor: visual              # Helps with editing
-version: "0.5.3"
+version: "0.5.4"
 ---
 
 ## Getting started
@@ -1286,7 +1286,12 @@ For example, humans struggle to perceive the differences between colors when the
 
 If you try to use this many, `ggplotplus` will (politely) recommend different courses of action:
 
-```{r warnings in re too many colors}
+```{r turn option on}
+#| include: false
+options(ggplotplus.enable_coaching = TRUE)
+```
+
+```{r warnings in re too many colors, message=TRUE}
 #| fig-height: 5.26
 #| fig-width: 8
 
@@ -1303,3 +1308,85 @@ ggplot(data = iris,
 You'll also note that it encourages you to consider renaming your scale titles to something more informative and human-readable too!
 
 If these coaching messages get too tedious for you, though, you can set `enable_coaching` to FALSE in `yaxis_title_plus()`, `theme_plus()`, or `gridlines_plus()` to turn all these checks and messages off. You can also disable them for the duration of the session by disabling them in the R options via `options(ggplotplus.enable_coaching = FALSE)`.
+
+## Compatibility with other packages
+
+While much probably still needs to be done to make `ggplotplus` easily and fully compatible with the rest of the "ggplot2niverse," it should be compatible with both `cowplot` and `patchwork`, although its outputs will need to be converted. For example:
+
+```{r turning option back off}
+#| include: false
+options(ggplotplus.enable_coaching = FALSE)
+```
+
+```{r cowplot demo}
+#| fig-height: 7
+#| fig-width: 13
+library(cowplot)
+
+P = ggplot(iris, #<--PACK GRAPH INTO OBJECT.
+       mapping = aes(x = Petal.Length, 
+           y = Sepal.Length)) +
+  geom_point(mapping = aes(fill = Species),
+            alpha = 0.3) + 
+  scale_continuous_plus(
+    scale = "x",
+    name = "Petal length (cm)", 
+    thin.labels = TRUE) +
+  scale_continuous_plus(
+    scale = "y",
+    name = "Sepal length (cm)") + 
+  scale_fill_discrete(
+    labels = c("I. setosa", "I. versicolor", "I. virginica")
+  ) +
+  theme_plus(
+    legend.text = element_text(face = "italic"),
+    begin_discrete = 0,
+    end_discrete = 1,
+    enable_coaching = F) + 
+  yaxis_title_plus() +
+  gridlines_plus() 
+
+cowplot::plot_grid(
+  ggplotplus_to_cowplot(P), #<--USE ggplotplus_to_cowplot ON THE PACKED OBJECT.
+  ggplotplus_to_cowplot(P)
+)
+```
+
+A similar workflow is available for `patchwork`:
+
+```{r basic patchwork}
+#| fig-height: 7
+#| fig-width: 13
+library(patchwork)
+
+P = ggplot(iris, #<--PACK GRAPH INTO OBJECT.
+       mapping = aes(x = Petal.Length, 
+           y = Sepal.Length)) +
+  geom_point(mapping = aes(fill = Species),
+            alpha = 0.3) + 
+  scale_continuous_plus(
+    scale = "x",
+    name = "Petal length (cm)", 
+    thin.labels = TRUE) +
+  scale_continuous_plus(
+    scale = "y",
+    name = "Sepal length (cm)") + 
+  scale_fill_discrete(
+    labels = c("I. setosa", "I. versicolor", "I. virginica")
+  ) +
+  theme_plus(
+    legend.text = element_text(face = "italic"),
+    begin_discrete = 0,
+    end_discrete = 1,
+    enable_coaching = F) + 
+  yaxis_title_plus() +
+  gridlines_plus() 
+
+(ggplotplus_to_patchwork(P) | #<--USE ggplotplus_to_patchwork() ON PACKED OBJECT.
+   ggplotplus_to_patchwork(P)) +
+   patchwork::plot_annotation(
+     title = "ggplotplus + patchwork"
+   )
+```
+
+If you encounter a compatibility issue with another package you depend on, please file an issue on the package's Github repository!

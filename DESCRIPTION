@@ -1,6 +1,6 @@
 Package: ggplotplus
-Title: `ggplotplus: An Opinionated, Universal-Design-Oriented Veneer For Ggplot2's Defaults
-Version: 0.5.3
+Title: `ggplotplus: An Opinionated, Universal-Design-Oriented Augmentation of Ggplot2's Defaults
+Version: 0.5.4
 Authors@R: 
     person("Alex", "Bajcz", email = "bajcz003@umn.com", role = c("aut", "cre"))
 Description: A collection of enhancements to ggplot2's defaults, with a focus on universal accessibility and ease of use.
@@ -22,7 +22,9 @@ Imports:
     polyclip
 Suggests: 
     testthat (>= 3.0.0),
-    ragg (>= 1.5.2)
+    ragg (>= 1.5.2),
+    patchwork,
+    cowplot
 Config/testthat/edition: 3
 Acknowledgements:
     Thanks to Allan Cameron (@Allan Cameron) for answers to
