@@ -52,7 +52,7 @@ library(ggplotplus)
 
 ## Motivation
 
-This guide introduces the `ggplotplus` package, a collection of tools developed by Dr. Alex Bajcz, Quantitative Ecologist at the Minnesota Aquatic Invasive Species Research Center (MAISRC) at the University of Minnesota.
+This guide introduces the `ggplotplus` package, a collection of tools developed by me, Dr. Alex Bajcz, Quantitative Ecologist at the Minnesota Aquatic Invasive Species Research Center (MAISRC) at the University of Minnesota.
 
 The tools in this package are meant to provide an opinionated, Universal-Design-oriented update to `ggplot2`'s existing tools and defaults, with the goal helping less-experienced and time-strapped ggplot2 users to make more accessible graphs more quickly and painlessly.
 
@@ -66,7 +66,7 @@ Plus, even if one has the *technical* know-how, not everyone is familiar enough 
 
 Accessibility is really the primary motivation for `ggplotplus`. Many of its changes to the default settings of ggplots are intended to improve compliance with modern accessibility standards; this guide attempts to highlight these improvements as a means of educating the reader on some of the finer points of modern accessible design, in case they are curious and motivated to learn more!
 
-**To be clear:** `ggplotplus` is **not** a replacement for making careful design choices, personal artistry, solicitation of feedback, or understanding your audience's needs and capabilities. Instead, it’s meant to be a new (and at least arguably better) starting point for your graphic design process. While the design choices baked into its tools ultimately reflect Dr. Bajcz’s professional judgments, they're grounded in a thorough review of the last several decades of the data visualization literature, so they don't only *primarily* reflect his *personal* opinions about good graph design (though they also do!). Feel free to disagree with some or even most of its opinions; it's designed to respect all your preferences, just as `ggplot2` would.
+**To be clear:** `ggplotplus` is **not** a replacement for making careful design choices, personal artistry, solicitation of feedback, or understanding your audience's needs and capabilities. Instead, it’s meant to be a new (and at least arguably better) starting point for your graphic design process. While the design choices baked into its tools ultimately reflect my professional judgments, they're grounded in a thorough review of the last several decades of the data visualization literature, so they don't only *primarily* reflect his *personal* opinions about good graph design (though they also do!). Feel free to disagree with some or even most of its opinions; it's designed to respect all your preferences, just as `ggplot2` would.
 
 ## Overview of the Package's Philosophy Towards Graph Design
 
@@ -92,6 +92,7 @@ The package has one primary function and then several more that are most applica
 | `scale_continuous_plus()` | Drop-in replacement for `ggplot2`'s `scale_x/y/color/fill_continuous()` functions. It attempts to ensure axis breakpoints and limits are set to ensure that the entire range of your graphed data are labeled. Useful for every continuous scale in your graph. |
 | `geom_point_plus()` | An alternative version of `ggplot2`'s `geom_point()` function. It introduces access to a new palette of shapes designed to be more readily differentiated. Useful when point shape is being mapped to a discrete variable, especially one with more than \~3 levels. |
 | `gridlines_plus()` | Adjusts the appearance of gridlines so they are as subtle and as infrequent as possible. Appropriate in the (relatively uncommon) instances where gridlines are useful to an end user relative to the cognitive load they add. |
+| `direct_labels_plus()` | Allows for directly labeling groups within the plotting area in lieu of clarifying group membership via faceting or a legend for increased density of information. |
 
 Each of these functions is discussed in more depth in the sections that follow, along with examples.
 
@@ -108,7 +109,7 @@ ggplot(data = iris, #<--THE DATA SET
 
 This graph is simple and reasonably effective—it's perfectly suitable for exploration and informal sharing!
 
-...However, for presentation or publication, it falls short (at least, in Dr. Bajcz's professional opinion! YMMV) in several important respects. Some of these include:
+...However, for presentation or publication, it falls short (at least, in my professional opinion! YMMV) in several important respects. Some of these include:
 
 - **Text size**: The default text size for axis and legend text is too small for easy reading, especially for those with a notable amount of visual impairment (something that tends to rapidly advance with age, and the world's population is aging). A common rule of thumb is to size text such that it feels *almost* **too** large to help ensure it's large *enough* for someone with visual impairment. Said differently, one should err on the side of sizing important elements as big as they can get away with before doing so leads to other design problems.
 
@@ -144,7 +145,7 @@ This graph is simple and reasonably effective—it's perfectly suitable for expl
   \
   So, gridlines are *often* unnecessary. However, when a designer does deem them to be valuable, research has shown they can and should be as faint and as infrequent as possible to minimize their costs relative to their benefits. This advice does not generally correspond well to `ggplot2`'s default behaviors.
 
-- **Incomplete axis labeling**: Axes should generally include tick marks and labels at both ends of the data range. This aligns with reader expectations (especially those of novice readers) and aids in efficient comprehension of the data. Axes are essentially "number lines," and so should be completely graduated by labels, just like number lines are. On this graph, though, both axes are missing one or more labels near the upper/lower limits of the data, which makes these axes feel visually "unfinished," as though we just "forgot" to label all the way up to the ends!
+- **Incomplete axis labeling**: Axes should generally include tick marks and labels at both ends of the data range. This aligns with reader expectations (especially those of novice readers) and aids in efficient comprehension of the data. Axes are essentially "number lines," and so should be completely graduated by labels, just like number lines are. On this graph, though, both axes are missing one or more labels near the upper/lower limits of the data, which makes these axes feel visually "unfinished," as though the software just "forgot" to label all the way up to the ends!
 
 - **Overplotting**: When data elements partially or wholly overlap with one another (a *very* common problem in point-based graphs like scatterplots), it becomes hard to judge how many elements are present in a location. This limits the reader's ability to gauge data **density**. This is a hard data-viz problem to fix, but `ggplot2`'s default settings do not attempt to address it at all; it simply stacks any number of points on top of one another invisibly.
 
@@ -156,7 +157,7 @@ This graph is simple and reasonably effective—it's perfectly suitable for expl
 
 - **Legend placement**: `ggplot2`'s default legend location (in the right-hand margin) is often space-inefficient, creating needlessly large voids above/below it. Plus, it tends to be encountered by readers relatively late when placed in this location. Data visualization best practices are to either integrate a legend's information into the plotting area directly (e.g., through direct labeling of lines) or else to place the legend somewhere both more prominent and more compact.
 
-This list isn’t exhaustive, but it illustrates how even a simple `ggplot` could require many adjustments to meet accessibility, clarity, and design standards. It has been Dr. Bajcz's personal experience that going from a base ggplot to a publishable one often requires several hundreds of lines of code-based adjustments! Not everyone has the time, patience, or wherewithal to do that much fiddling for every graph they make: hence, `ggplotplus`. It bundles together many of those hundreds of lines of code so that we can all just *start* much closer to where most of us would want to *finish*!
+This list isn’t exhaustive, but it illustrates how even a simple `ggplot` could require many adjustments to meet accessibility, clarity, and design standards. It has been my personal experience that going from a base ggplot to a publishable one often requires several hundreds of lines of code-based adjustments! Not everyone has the time, patience, or wherewithal to do that much fiddling for every graph they make: hence, `ggplotplus`. It bundles together many of those hundreds of lines of code so that we can all just *start* much closer to where most of us would want to *finish*!
 
 ## theme_plus: An Opinionated Starting Point
 
@@ -183,7 +184,7 @@ Hopefully, you can already see how big a difference this one function can make t
 
 - **Remove gridlines** by default (see later section on `gridlines_plus()` for how to selectively reintroduce them).
 
-- **White background** for highest contrast against most standard foreground elements (well, technically, it's a very subtle, warm offwhite, since true white can increase eyestrain with prolonged viewing).
+- **White background** for highest contrast against most standard foreground elements (well, technically, it's a very subtle, warm off-white, since true white can increase eyestrain with prolonged viewing).
 
 - **Black axis lines** at the bottom and left for visual anchoring (but no top or right borders, which typically communicate no information and thus are extraneous).
 
@@ -258,7 +259,7 @@ ggplot(data = iris,
               end_discrete = 1) #<--ALLOW YELLOW REGION.
 ```
 
-In this example, we’ve disabled the purple end of the palette and we've enabled the yellow region, which means we have some points that now lack contrast with the background. But no worries–that's something we can fix!
+In this example, I've disabled the purple end of the palette and I've enabled the yellow region, which means I have some points that now lack contrast with the background. But no worries–that's something I can fix!
 
 ### Continuous color scales
 
@@ -298,19 +299,19 @@ ggplot2::theme(geom = ggplot2::element_geom(pointsize = 5)) #SET THE DEFAULT POI
 
 This functionality allows `theme_plus()` to replace many of the default settings of many commonly used geometry layers automatically.
 
-For example, in the above graph, we can see that `theme_plus()` has made:
+For example, in the above graph, one can see that `theme_plus()` has made:
 
 - The points are **larger** and thus easier to parse.
 
 - The **shape** of these points hollow circles (by changing the default shape from R's shape 16 to shape **21)**.
 
-The latter change is important because shape 16 only supports the `color` aesthetic, whereas shape 21 supports **both** `color` (for the stroke/outline) and `fill` (for the interior). This gives us more flexibility in our design.
+The latter change is important because shape 16 only supports the `color` aesthetic, whereas shape 21 supports **both** `color` (for the stroke/outline) and `fill` (for the interior). This affords more flexibility in design choices.
 
 Specifically, by default, `theme_plus()` set the interior color for points to `"transparent"`, resulting in **hollow circles**. This allows **partial overlaps** between points to be more readily distinguishable—though, of course, total overlap would still not discernible.
 
 ### Improving Contrast with the Fill Aesthetic
 
-There is something we can do with our design to address even "extreme overplotting," i.e., when points would overlap fully. It first requires us to switch from mapping species to `color` instead of to `fill`. This will cause `theme_plus()` to pivot to making the strokes of the points black:
+There is something I can do with this design to address even "extreme overplotting," i.e., when points would overlap fully. It first requires me to switch from mapping species to `color` instead of to `fill`. This will cause `theme_plus()` to pivot to making the strokes of the points black:
 
 ```{r fill instead, message=FALSE}
 #SAME GRAPH AS BEFORE EXCEPT...
@@ -324,7 +325,7 @@ ggplot(data = iris,
 
 Notice how this change fixes our earlier issue of our yellow points lacking contrast against the light background. This happens because the fill colors are now surrounded by **black outlines**, so our eyes will compare the fill color to the black (the most proximal other color) rather than to the background. A neat trick, based on how the science of vision works!
 
-Even though dark purple wouldn't have sufficient contrast against a black outline, that’s not actually a problem because the point strokes aren't encoding information. As a result, if we wanted top make the colors being used even more distinct, we could restore the full range of the *viridis* palette:
+Even though dark purple wouldn't have sufficient contrast against a black outline, that’s not actually a problem because the point strokes aren't encoding information. As a result, if I wanted to make the colors being used even more distinct, I could restore the full range of the *viridis* palette:
 
 ```{r restore purple, message=FALSE}
 #SAME GRAPH AS BEFORE EXCEPT...
@@ -336,11 +337,11 @@ ggplot(data = iris,
               end_discrete = 1) 
 ```
 
-Purple points still look purple, whether we can distinguish their black outlines from their fill colors or not. Meanwhile, all points are easily distinguished from the background, so we can utilize the entire color space available to us in the palette!
+Purple points still look purple, whether I can distinguish their black outlines from their fill colors or not. Meanwhile, all points are easily distinguished from the background, so I can utilize the entire color space available in the palette!
 
 ### Resolving overplotting
 
-Ok! Back to the issue of extreme overplotting here. There are two broadly effective options for addressing overplotting in graphs like this one. The first, as we've already seen, is to pick a shape with separate `color` and `fill` aesthetics, then map `color` to the stroke and set the `fill` to `"transparent"` so that partial overlap between the points is evident.
+Ok! Back to the issue of extreme overplotting here. There are two broadly effective options for addressing overplotting in graphs like this one. The first, as you've already seen, is to pick a shape with separate `color` and `fill` aesthetics, then map `color` to the stroke and set the `fill` to `"transparent"` so that partial overlap between the points is evident.
 
 However, another, more aggressive option is to instead map stroke to a `color` that contrasts against the background well (such as black for a white background), map `fill` color to your variable of interest, and then make the points *semi-transparent* so that points stacked on top of one another "blend" into one another chromatically. This is easier to see than to read:
 
@@ -361,7 +362,7 @@ Note: This approach also dims the **black point strokes**, so contrast could sti
 
 ### Easier-To-Read Legend Keys
 
-Did you notice: In the previous graph, even though we adjusted the transparency of the points using `alpha`, the legend key symbols retained full opacity? That's another `ggplotplus` default design opinion: legend keys should always be readable!
+Did you notice: In the previous graph, even though I adjusted the transparency of the points using `alpha`, the legend key symbols retained full opacity? That's another `ggplotplus` default design opinion: legend keys should always be readable!
 
 When points are made smaller (`size` is adjusted downward) and/or points are made semi-transparent (`alpha` is adjusted downward), `ggplot2`'s default behavior is to apply these same changes to the legend key symbols as well. However, this might make those symbols harder to read. For example:
 
@@ -378,13 +379,13 @@ ggplot(data = iris,
               ) 
 ```
 
-In this graph, we've reduced the size and opacity of the points, and now it's pretty difficult to differentiate the legend keys.
+In this graph, I've reduced the size and opacity of the points, and now it's pretty difficult to differentiate the legend keys.
 
-Now, there might be reasons we'd want points *within the plotting area* to be smaller and/or more transparent! But unless variation in point size/transparency conveys information about differences (e.g., these aesthetics *aren't* constants, i.e., you've *mapped* them to variable data), it's often undesirable from a readability standpoint to apply these same traits to the legend key symbols too.
+Now, there might be reasons one would want points *within the plotting area* to be smaller and/or more transparent! But unless variation in point size/transparency conveys information about differences (e.g., these aesthetics *aren't* constants, i.e., you've *mapped* them to variable data), it's often undesirable from a readability standpoint to apply these same traits to the legend key symbols too.
 
 So, `ggplotplus` will coerce legend key symbols back to full opacity and a reasonable size (`5`) unless you:
 
-- Set `override_legend_alphasize` to `FALSE`, as we did above (this can also be done via `gridlines_plus()` and `yaxis_title_plus()` as well!).
+- Set `override_legend_alphasize` to `FALSE`, as I did above (this can also be done via `gridlines_plus()` and `yaxis_title_plus()` as well!).
 
 - You set `guide = 'none'` inside a `scale_*` function or `guides()`.
 
@@ -407,7 +408,7 @@ ggplot(data = iris,
               end_discrete = 1) 
 ```
 
-Here, we set size to vary as a function of a variable, so variation in point size now conveys meaning. Our point size legend (top) respects that. However, our point alpha adjustment is ignored in both legends, and the fill legend (bottom) continues to use a large, constant size.
+Here, I set size to vary as a function of a variable, so variation in point size now conveys meaning. Our point size legend (top) respects that. However, our point alpha adjustment is ignored in both legends, and the fill legend (bottom) continues to use a large, constant size.
 
 ### Detour: Mapping Visual Channels in `ggplot2` (a Review)
 
@@ -447,7 +448,7 @@ If you map the *same aesthetic* in multiple places (e.g., globally and locally),
 
 #### ...So what?
 
-We bring all this up just to say that all of the same rules apply when using `ggplotplus`. You can:
+I bring all this up just to say that all of the same rules apply when using `ggplotplus`. You can:
 
 - Map aesthetics globally or locally.
 
@@ -581,7 +582,7 @@ ggplot(iris,
 
 The `theme_plus()`-driven changes here include longer and fatter tick marks of pure white for maximum contrast against the colors within (at least, *usually*–there's no perfect hue to use for this purpose!), a black border to prevent any contrast issues with the background, and larger dimensions for easier reading and enhanced visibility.
 
-Note that color bars can have the same issue as axes, where the ends don't always get labels. We can just add a third call to `scale_continuous_plus()` to help with that:
+Note that color bars can have the same issue as axes, where the ends don't always get labels. One can just add a third call to `scale_continuous_plus()` to help with that:
 
 ```{r fill plus scale, message=FALSE}
 ggplot(iris,
@@ -677,7 +678,7 @@ This works *reasonably* well. It's readable, and it's *relatively* simple to imp
 
 - It keeps the label in a *relatively* unprominent location, where readers may not encounter it early.
 
-- It doesn’t scale well to longer axis titles or those with long, unbreakable words. If we want a descriptive, detail-rich title, it's hard to achieve that with this approach.
+- It doesn’t scale well to longer axis titles or those with long, unbreakable words. If one wants a descriptive, detail-rich title, it's hard to achieve that with this approach.
 
 To get around these challenges, `ggplotplus` includes `yaxis_title_plus()`, which "surgically" moves the y-axis title to above the y-axis line, left-justified to the plot margin:
 
@@ -703,13 +704,13 @@ ggplot(iris,
 
 This may seem a *little* radical at first, but this small adjustment has many potential benefits that data visualization experts have been championing for decades:
 
-- **Prominence**: Readers of left-to-right, top-to-bottom languages naturally start in the upper-left (we read this the **"Z reading frame,"** which is to say we read in a pattern that traces one or more Zs, starting at the top-left of an element), so the y-axis title is now one of the *first* elements many readers will encounter.
+- **Prominence**: Readers of left-to-right, top-to-bottom languages naturally start in the upper-left (this is called the **"Z reading frame,"** which is to say most humans read in a pattern that traces one or more Zs, starting at the top-left of an element), so the y-axis title is now one of the *first* elements many readers will encounter.
 
 - **Readability**: The title is horizontal, making it easier and faster to read for all kinds of people in all kinds of contexts.
 
 - **Space efficiency**: Instead of taking up room in the "data row" of the graph, the title sits in a narrow horizontal band *above* the plot, freeing up the core of the graphing area for your data to shine.
 
-- **Pseudo-title element**: Many graph design advocates recommend against using plot titles. The reason is that, at best, titles tend to do what good y-axis titles and figure captions already do, only worse. However, research does suggest novice graph readers find titles helpful as "footholds." By moving the y-axis title to where a plot (sub)title might go, we allow it to serve a similar purpose but with no risk of being repetitive with a plot title.
+- **Pseudo-title element**: Many graph design advocates recommend against using plot titles. The reason is that, at best, titles tend to do what good y-axis titles and figure captions already do, only worse. However, research does suggest novice graph readers find titles helpful as "footholds." By moving the y-axis title to where a plot (sub)title might go, it's allowed to serve a similar purpose but with no risk of being repetitive with a plot title.
 
 - **No ambiguity**: One hazard with moving the y-axis title to anywhere other than its "normal" location is that it may become unclear what it refers to. By anchoring it above the y-axis line and left-justifying it to the left edge of the y-axis labels, there's little, if any, ambiguity as to its purpose. This is aided by `theme_plus()`'s default behavior to place any legend title at the top of the plot to the right rather than to the left of the legend keys.
 
@@ -751,7 +752,7 @@ However, this can still be relatively space-inefficient and demanding on the rea
 
 In practice, direct labeling in `ggplot2` is a little cumbersome. Generally, one would use `ggplot2`'s `annotate()` or `geom_text()` functions to manually choose a location for each label, guessing and checking to ensure adequate sizing and placement and to avoid overlapping labels with each other or with underlying points.
 
-To demonstrate, let's bin petal widths so we have a second categorical variable other than `Species` to work with:
+To demonstrate, let's bin petal widths so I have a second categorical variable other than `Species` to work with:
 
 ```{r manual annotations baseline, message=FALSE}
 #| fig-height: 6
@@ -841,7 +842,7 @@ ggplot(iris,
                      )
 ```
 
-Here, at least, this configuration works well–there's no ambiguity about which fill colors go with which labels, we eliminate the need for a legend, and there was ample void space within the plotting area to facilitate this approach.
+Here, at least, this configuration works well–there's no ambiguity about which fill colors go with which labels, there's no longer a need for a legend, and there was ample void space within the plotting area to facilitate this approach.
 
 While I wouldn't necessarily recommend using direct labeling in the context of faceting ("small multiples"), `direct_labels_plus()` will work with faceting so long as you supply either or both faceting variables to `facet_vars`:
 
@@ -964,7 +965,7 @@ These gridlines default to `"gray90"`. Prior research suggests gridlines this fa
 
 However, if you want to tweak them in some respect or another, `gridlines_plus()` allows adjustments to `linetype`, `color`, and `linewidth` for your convenience—no need to use `theme_plus()` to make those types of adjustments!
 
-If we had just one continuous axis, `gridlines_plus()` would automatically detect this and draw the gridlines in only the one relevant direction:
+If I had just one continuous axis, `gridlines_plus()` would automatically detect this and draw the gridlines in only the one relevant direction:
 
 ```{r one one gridlines, message=FALSE}
 ggplot(iris,
@@ -980,7 +981,7 @@ ggplot(iris,
   gridlines_plus()
 ```
 
-Because gridlines are *primarily* beneficial for helping a reader discern exact values, there's no need for them when an axis is discrete and thus has no exact values to read! Thus, we can simplify the presentation by omitting them in that direction automatically.
+Because gridlines are *primarily* beneficial for helping a reader discern exact values, there's no need for them when an axis is discrete and thus has no exact values to read! Thus, the presentation is simplified by omitting them in that direction automatically.
 
 ### Selectively Not Adding Gridlines
 
@@ -1028,7 +1029,7 @@ ggplot(iris,
 
 As this example shows, **many features in `ggplotplus` are compatible with faceting**, though some *may* require some thought.
 
-For example, using `yaxis_title_plus()` with facets works—the function places the relocated y-axis title below the facet strip labels. However, for some, this could look a little confusing or awkward. In general, we don't recommend using `yaxis_title_plus()` when you're faceting and have the facet strip labels at the top of the plot.
+For example, using `yaxis_title_plus()` with facets works—the function places the relocated y-axis title below the facet strip labels. However, for some, this could look a little confusing or awkward. In general, I don't recommend using `yaxis_title_plus()` when you're faceting and have the facet strip labels at the top of the plot.
 
 However, there are three potential workarounds. The first is simply to facet by rows instead of columns:
 
@@ -1077,7 +1078,7 @@ ggplot(iris,
 
 This honestly works better in some ways anyhow!
 
-A third option would be to suppress the facet strip labels and instead only retain the legend, since we're mapping `Species` here to both panel and color redundantly:
+A third option would be to suppress the facet strip labels and instead only retain the legend, since I'm mapping `Species` here to both panel and color redundantly:
 
 ```{r retain legend, message=FALSE}
 ggplot(iris,
@@ -1102,13 +1103,13 @@ Faceting is a relatively complex feature of `ggplot2`. `ggplotplus`'s features a
 
 ## Color Isn't Everything! Incorporating Distinctive Shapes Into Scatterplots
 
-Thus far, we've mostly focused on graphs that use color (hue, luminance, and saturation) to communicate differences in our data. `ggplotplus` is designed to revamp how `ggplot2` approaches color to yield graphs that are more accessible and more interpretable while still having the aesthetic and engagement benefits of color.
+Thus far, this guide has mostly focused on graphs that use color (hue, luminance, and saturation) to communicate differences in the data. `ggplotplus` is designed to revamp how `ggplot2` approaches color to yield graphs that are more accessible and more interpretable while still having the aesthetic and engagement benefits of color.
 
 However, *any* graph that uses color to communicate difference can only be *so* accessible and interpretable. A small but sizable number of humans are completely colorblind, and color perception weakens as we age. Additionally, many people still read and/or view graphs in contexts wherein colors may not be readily distinguished.
 
-As such, data viz advocates would remind us there are other **visual channels** (ways of communicating difference in a graph) beyond color available to us, including many already baked into `ggplot2`!
+As such, data viz advocates would remind us all there are other **visual channels** (ways of communicating difference in a graph) beyond color available to us, including many already baked into `ggplot2`!
 
-One of these, point `shape`, is a useful and classic channel for communicating difference in scatterplots like those we've made so far.
+One of these, point `shape`, is a useful and classic channel for communicating difference in scatterplots like those in the guide so far.
 
 However, `ggplot2` only makes available the same 26 shapes available in base R:
 
@@ -1193,7 +1194,7 @@ ggplot(
   gridlines_plus()
 ```
 
-As previously noted, all these shapes have separate fill and color aesthetics, so these color-based aesthetics can be set to constants or even mapped to variables (although we wouldn't necessarily recommend doing the latter in many cases):
+As previously noted, all these shapes have separate fill and color aesthetics, so these color-based aesthetics can be set to constants or even mapped to variables (although I wouldn't necessarily recommend doing the latter in many cases):
 
 ```{r filling the shapes, message=FALSE}
 #| fig-height: 6.5
@@ -1315,7 +1316,7 @@ For example, a basic 5-pointed star, with no holes, might have coordinates like 
 ))
 ```
 
-We can register this shape with `ggplotplus` for the session using `add_shape_plus()`:
+I can register this shape with `ggplotplus` for the session using `add_shape_plus()`:
 
 ```{r adding shape, message=FALSE}
 add_shape_plus(name = "star", #<--THE NAME TO USE TO ACCESS THIS SHAPE.
@@ -1348,7 +1349,7 @@ ggplot(
   gridlines_plus()
 ```
 
-Feel free to get creative to make highly distinctive shapes! Generative AI models are, in our experience, very good at turning shape ideas into compatible lists of vertices and holes, if given the parameters described above.
+Feel free to get creative to make highly distinctive shapes! Generative AI models are, in my experience, very good at turning shape ideas into compatible lists of vertices and holes, if given the parameters described above.
 
 Note that shape registrations last only for the session; you will need to re-register shapes each new session.
 
@@ -1377,7 +1378,7 @@ ggplot(iris,
 
 ## Final scatterplot for reference
 
-Here’s a "final" version of our scatterplot using all of `ggplotplus`’s tools together:
+Here’s a "final" version of the scatterplot using (almost) all of `ggplotplus`’s tools together:
 
 ```{r idealized graph, message=FALSE}
 ggplot(iris,
@@ -1407,9 +1408,9 @@ I'd say that looks pretty nice, but it's, at *worst*, an evidence-based starting
 
 ## Exporting Graphs and Resizing
 
-Just as with `ggplot2`, we recommend users use `ggplot2::ggsave()` to export **all** their graphs from R! Using RStudio's Plots pane to export graphs makes it harder to control the resolution, width, and size of your exported graphs and to ensure consistency from one version of a graph to the next.
+Just as with `ggplot2`, I recommend users use `ggplot2::ggsave()` to export **all** their graphs from R! Using RStudio's Plots pane to export graphs makes it harder to control the resolution, width, and size of your exported graphs and to ensure consistency from one version of a graph to the next.
 
-Specifically, we highly recommend specifying a `dpi` of at least 300 (the default) to `ggsave()` as well as a `width` and `height` relevant to the intended use of the graph.
+Specifically, I highly recommend specifying a `dpi` of at least 300 (the default) to `ggsave()` as well as a `width` and `height` relevant to the intended use of the graph.
 
 For example, full page width in a typical scientific journal is approximately 7 inches, and a typical aspect ratio (width:height) is approximate 1.33, yielding a typical height around 5.26 inches. So, a reasonable `ggsave()` call might look like this:
 
