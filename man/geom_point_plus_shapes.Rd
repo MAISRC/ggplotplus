@@ -9,6 +9,9 @@ A ggplot object.
 \usage{
 geom_point_plus_shapes()
 }
+\value{
+Returns a ggplot2 graph showing the ggplotplus shapes palette.
+}
 \description{
 A prebuilt ggplot object displaying the nine custom point shapes designed specifically for use in \code{geom_point_plus()}. As of Version 0.5.2, other shapes are also available, but those are not shown via this function. See the documentation for \code{geom_point_plus()} for details.
 }

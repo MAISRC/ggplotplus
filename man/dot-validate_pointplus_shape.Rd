@@ -15,7 +15,7 @@
 \value{
 A cleaned shape data frame containing only \code{x}, \code{y}, and
 \code{piece}. The \code{piece} column is converted to sequential integers if
-it wasn't already formatted thusly.
+it wasn't already formatted like that.
 }
 \description{
 Internal helper used by \code{add_shape_plus()} to check that a custom

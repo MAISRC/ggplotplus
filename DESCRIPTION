@@ -1,10 +1,11 @@
 Package: ggplotplus
-Title: `ggplotplus: An Opinionated, Universal-Design-Oriented Augmentation of Ggplot2's Defaults
-Version: 0.5.4
+Title: Universal Design-Oriented Enhancements for 'ggplot2'
+Version: 0.5.5
 Authors@R: 
-    person("Alex", "Bajcz", email = "bajcz003@umn.com", role = c("aut", "cre"))
-Description: A collection of enhancements to ggplot2's defaults, with a focus on universal accessibility and ease of use.
-Depends: R (>= 4.5.0)
+    person("Alex", "Bajcz", email = "bajcz003@umn.edu", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-5909-4676"))
+BugReports: https://github.com/MAISRC/ggplotplus/issues
+Description: A collection of enhancements to 'ggplot2', with a focus on creating Universally Designed, accessible graphs easily and quickly.
+Depends: R (>= 4.1.0)
 License: MIT + file LICENSE
 Encoding: UTF-8
 URL: https://github.com/MAISRC/ggplotplus
@@ -19,16 +20,14 @@ Imports:
     gtable,
     scales,
     viridisLite,
-    polyclip
+    polyclip,
+    ggrepel (>= 0.9.0),
+    dplyr,
+    stats
 Suggests: 
     testthat (>= 3.0.0),
     ragg (>= 1.5.2),
     patchwork,
     cowplot
 Config/testthat/edition: 3
-Acknowledgements:
-    Thanks to Allan Cameron (@Allan Cameron) for answers to
-    Stack Overflow questions 79654995 and 79682150, which
-    provided key coding elements enabling the functionality
-    of yaxis_title_plus() and geom_point_plus().
 LazyData: true

@@ -193,6 +193,65 @@ test_plots$multi_aes =
   scale_continuous_plus(scale = "y") +
   scale_continuous_plus(scale = "fill")
 
+# 19. Line plot + direct group labeling
+test_plots$line_plot =
+  ggplot(Orange, aes(
+    x = age,
+    y = circumference,
+    color = factor(Tree, levels = unique(sort(as.numeric(
+      Tree
+    ))))
+  )) +
+  geom_line() +
+  theme_plus() +
+  gridlines_plus() +
+  yaxis_title_plus() +
+  scale_continuous_plus(scale = "x", name = "Age (years)") +
+  scale_continuous_plus(scale = "y", name = "Circumference (cm)") +
+  labs(color = "Tree") +
+  scale_color_discrete(guide = "none") +
+  direct_labels_plus(
+    data = Orange,
+    x = age,
+    y = circumference,
+    group = Tree,
+    placement = "right",
+    geometry = "line",
+    key_labels = paste("Tree", 1:5)
+  )
+
+# 20. Scatter plot + direct group labeling + faceting
+iris$Petal.Width.binned = ggplot2::cut_interval(iris$Petal.Width, n = 4)
+
+test_plots$direct_labeling =
+  ggplot(iris, aes(Sepal.Width, Sepal.Length, shape = Species)) +
+  geom_point_plus(aes(fill = Petal.Length),
+                  colour = "black",
+                  include_shape_legend = F) +
+  theme_plus(strip.text = element_blank()) +
+  gridlines_plus() +
+  yaxis_title_plus() +
+  scale_continuous_plus(scale = "x") +
+  scale_continuous_plus(scale = "y") +
+  scale_continuous_plus(scale = "fill") +
+  direct_labels_plus(
+    data = iris,
+    x = Sepal.Width,
+    y = Sepal.Length,
+    group = Species,
+    facet_vars = "Petal.Width.binned",
+    placement = "right",
+    geometry = "point",
+    adj_fact = 0,
+    key_labels = c("setosa" = "I win", "virginica" = "You win", "versicolor" = "We all win"),
+    fontface = "italic",
+    size = 5,
+    box.padding = 0.5,
+    segment.size = 1,
+    min.segment.length = 0
+  ) +
+  facet_grid(. ~ Petal.Width.binned)
+
 # Smoke test: build all plots
 plot_build_results = lapply(names(test_plots), function(nm) {
   message("Building: ", nm)

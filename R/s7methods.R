@@ -164,11 +164,13 @@ S7::method(ggplot_build, GGPlotPlusPlot) <- function(plot, ...) {
       target_aes = character(0)
 
       #FIGURE OUT WHICH OUT OF FILL, COLOUR, AND SHAPE ARE BEING MAPPED...
-      if(has_fill_mapped && !.guide_is_none_for_aes(plot, "fill")) {
+      if(has_fill_mapped && !.guide_is_none_for_aes(plot, "fill") &&
+         !.aes_mapped_var_is_continuous(plot, "fill")) { #<--DON'T DO THIS WHEN MAPPED TO A CONTINUOUS VARIABLE!
         target_aes = c(target_aes, "fill")
       }
 
-      if(has_colour_mapped && !.guide_is_none_for_aes(plot, "colour")) {
+      if(has_colour_mapped && !.guide_is_none_for_aes(plot, "colour") &&
+         !.aes_mapped_var_is_continuous(plot, "colour")) {
         target_aes = c(target_aes, "colour")
       }
 
@@ -178,30 +180,42 @@ S7::method(ggplot_build, GGPlotPlusPlot) <- function(plot, ...) {
 
       if(length(target_aes) > 0) {
 
-        labs = sapply(plot@mapping, as_label) #FIGURE OUT THE CURRENT SCALE LAVELS
+        all_target_aes = target_aes
 
-        #JUNCTION THAT WITH THE LABELS OF THE TARGET AES SCALES.
+        #JUNCTION ALL TARGET LABELS WITH THE LABELS OF THE TARGET AES SCALES.
         target_labels = vapply(target_aes, function(aes_name) {
           .get_prebuild_aes_label(plot, aes_name)
         }, character(1))
 
+
         #IF THE LABELS ARE DUPLICATED FOR ANY TWO OR MORE OF THESE SCALES, NO NEED TO OVERRIDE.AES FOR BOTH, AS THOSE SCALES ARE LIKELY TO COLLAPSE.
-        target_aes = target_aes[!duplicated(target_labels)]
+        keep_aes = target_aes[!duplicated(target_labels)]
+        drop_aes = setdiff(all_target_aes, keep_aes) #NOTE WHICH THESE ARE.
+
+        #THEN, CHECK THE ONES WE'RE GOING TO NOT MANIPULATE FOR ANY override.aes() CONDITIONS AND DROP THOSE SO THERE IS ONLY THE ONE. THIS SHOULD BE OK BECAUSE THE LEGENDS SHOULD BE PLANNING TO COLLAPSE.
+        for(aes_name in drop_aes) {
+          guide = plot@guides$guides[[aes_name]]
+
+          if(!is.null(guide) && inherits(guide, "GuideLegend")) {
+            guide$params$override.aes = list()
+            plot = plot + ggplot2::guides(!!aes_name := guide)
+          }
+        }
 
         #THEN APPLY THE OVERRIDE.AES OVERRIDES.
-        if("fill" %in% target_aes) {
+        if("fill" %in% keep_aes) {
           plot = plot + ggplot2::guides(
             fill = .merge_legend_override(plot, "fill", override_list)
           )
         }
 
-        if("colour" %in% target_aes) {
+        if("colour" %in% keep_aes) {
           plot = plot + ggplot2::guides(
             colour = .merge_legend_override(plot, "colour", override_list)
           )
         }
 
-        if("shape" %in% target_aes) {
+        if("shape" %in% keep_aes) {
           plot = plot + ggplot2::guides(
             shape = .merge_legend_override(plot, "shape", override_list)
           )

@@ -4,19 +4,20 @@
 \name{ggplotplus-package}
 \alias{ggplotplus}
 \alias{ggplotplus-package}
-\title{ggplotplus: `ggplotplus: An Opinionated, Universal-Design-Oriented Augmentation of Ggplot2's Defaults}
+\title{ggplotplus: Universal Design-Oriented Enhancements for 'ggplot2'}
 \description{
-A collection of enhancements to ggplot2's defaults, with a focus on universal accessibility and ease of use.
+A collection of enhancements to 'ggplot2', with a focus on creating Universally Designed, accessible graphs easily and quickly.
 }
 \seealso{
 Useful links:
 \itemize{
   \item \url{https://github.com/MAISRC/ggplotplus}
+  \item Report bugs at \url{https://github.com/MAISRC/ggplotplus/issues}
 }
 
 }
 \author{
-\strong{Maintainer}: Alex Bajcz \email{bajcz003@umn.com}
+\strong{Maintainer}: Alex Bajcz \email{bajcz003@umn.edu} (\href{https://orcid.org/0000-0002-5909-4676}{ORCID})
 
 }
 \keyword{internal}

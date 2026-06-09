@@ -14,7 +14,6 @@ geom_point_plus(
   chosen_shapes = NULL,
   legend_title = NULL,
   legend_labels = NULL,
-  key_size = 8,
   include_shape_legend = TRUE,
   ...,
   na.rm = FALSE,
@@ -41,8 +40,6 @@ geom_point_plus(
 \item{legend_title}{A length-1 character string corresponding to the name to be used for the shape legend title (if any). This is passed internally to \code{scale_shape_manual()} and is meant to help circumvent the need for the user to specify any such call directly.}
 
 \item{legend_labels}{A character vector corresponding to the names to be used for the shape legend labels (if any). This is passed internally to \code{scale_shape_manual()} and is meant to help circumvent the need for the user to specify any such call directly.}
-
-\item{key_size}{A length-1 numeric value corresponding to the desired size of the legend keys. Defaults to 8. This is passed internally to \code{scale_shape_manual()} and is meant to help circumvent the need for the user to specify any such call directly.}
 
 \item{include_shape_legend}{Logical indicating whether a shape legend will be shown (one is always shown unless this is set to FALSE, even when shape is being mapped to a constant and thus a legend may not be appropriate).}
 

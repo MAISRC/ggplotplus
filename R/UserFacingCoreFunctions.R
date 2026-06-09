@@ -472,16 +472,16 @@ theme_plus = function(...,
   ) +
     ggplot2::theme_sub_axis(
       line = ggplot2::element_line(color = line_color, linewidth = ggplot2::rel(1), lineend = "square"), #ADD THICK BLACK X AND Y AXIS LINES WITH SQUARE ENDS TO ENSURE THAT THEY APPEAR TO VISUALLY MEET.
-      title = ggplot2::element_text(color = text_color, size = ggplot2::rel(1.125)),
+      title = ggplot2::element_text(color = text_color, size = ggplot2::rel(1.125), face = "bold", family = "sans"),
       text = ggplot2::element_text(size = ggplot2::rel(1), color = text_color), #ENSURE AXIS LABELS ARE BLACK AND SIZE 16
-      ticks.length = ggplot2::unit(0.25, "cm"), #INCREASE SIZE OF AXIS TICK MARKS TO BE MORE NOTICEABLE.
+      ticks.length = ggplot2::unit(0.2, "cm"), #INCREASE SIZE OF AXIS TICK MARKS TO BE MORE NOTICEABLE.
       ticks = ggplot2::element_line(color = line_color, linewidth = ggplot2::rel(0.75)),
     ) +
     ggplot2::theme_sub_axis_x(title = ggplot2::element_text(margin = ggplot2::margin(t = 10))) +
     ggplot2::theme_sub_axis_y(title = ggplot2::element_text(vjust = 0.5, margin = ggplot2::margin(r = 15), angle = 90)) +
     ggplot2::theme_sub_legend(
       box = "vertical", #<--MAKES MULTIPLE LEGENDS GO VERTICAL
-      title = ggplot2::element_text(color = text_color, size = ggplot2::rel(1.125)),
+      title = ggplot2::element_text(color = text_color, face = "bold", family = "sans", size = ggplot2::rel(1.12)),
       text = ggplot2::element_text(size = ggplot2::rel(1), color = text_color),
       key = ggplot2::element_rect(fill = "transparent", color = "white"),
       background = ggplot2::element_rect(color = NA, fill = background_color),
@@ -552,7 +552,6 @@ theme_plus = function(...,
 #' @param chosen_shapes A character string referring by name to elements in the current shapes registry that the function should use to allocate shapes to values, e.g. `c("flower", "octagon", "squircle)`. These are provided internally to a `scale_shape_manual()` call and are meant to circumvent the need for such a call to specify a specific subset of shapes to be used from the new shapes palette. Defaults to `NULL`, i.e., shapes are pulled from `shapes.list` in order. Numerical values will use `ggplot2`'s default shapes instead.
 #' @param legend_title A length-1 character string corresponding to the name to be used for the shape legend title (if any). This is passed internally to `scale_shape_manual()` and is meant to help circumvent the need for the user to specify any such call directly.
 #' @param legend_labels A character vector corresponding to the names to be used for the shape legend labels (if any). This is passed internally to `scale_shape_manual()` and is meant to help circumvent the need for the user to specify any such call directly.
-#' @param key_size A length-1 numeric value corresponding to the desired size of the legend keys. Defaults to 8. This is passed internally to `scale_shape_manual()` and is meant to help circumvent the need for the user to specify any such call directly.
 #' @param include_shape_legend Logical indicating whether a shape legend will be shown (one is always shown unless this is set to FALSE, even when shape is being mapped to a constant and thus a legend may not be appropriate).
 #' @param ... Other arguments passed on to this layer()'s params argument, as in `ggplot2::geom_point()`.
 #' @param na.rm Logical value controlling whether missing values should be removed from the data with a warning or silently, as in `ggplot2::geom_point()`.
@@ -580,7 +579,6 @@ geom_point_plus = function(mapping = NULL,
                            chosen_shapes = NULL, #WE PROVIDE DIRECT ACCESS TO THE VALUES ARGUMENT OF SCALE_SHAPE_MANUAL VIA THIS PARAMETER. THIS WAY, A USER NEEDN'T TACK ON AN ADDITIONAL CALL TO SCALE_SHAPE_MANUAL() TO CUSTOMIZE THE SHAPES USED.
                            legend_title = NULL, #WE ALSO PROVIDE DIRECT ACCESS TO THE TITLE ARGUMENT OF THE LEGEND, AS CHANGING THIS MANUALLY WOULD OTHERWISE REQUIRE ANOTHER CALL TO SCALE_SHAPE_DISCRETE AND THAT WOULD TRIGGER A WARNING AND RESET TO THE SHAPES PALETTE GGPLOT2 GENERALLY USES.
                            legend_labels = NULL, #SAME AS ABOVE.
-                           key_size = 8, #WE PROVIDE DIRECT ACCESS TO THE SIZES OF THE KEYS IN THE LEGEND TOO.
                            include_shape_legend = TRUE, #WE PROVIDE DIRECT ACCESS TO WHETHER OR NOT A SHAPE LEGEND GETS SHOWN, FOR USE IN SINGLE-SHAPE SCATTERPLOTS WHERE THE CUSTOM SHAPES ARE USED INSTEAD OF GGPLOT2 DEFAULTS.
                            ...,
                            na.rm = FALSE,
@@ -631,16 +629,14 @@ geom_point_plus = function(mapping = NULL,
 
   #HERE, SELECT THE EXACT SHAPES TO DRAW FROM THE SHAPES PALETTE, DEFAULTING TO THE SHAPES IN THE REGISTRY IN ORDER IF NO SPECIFIC SHAPES WERE CHOSEN.
   if(is.null(chosen_shapes) || length(chosen_shapes) == 0) {
-    values = names(avail_shapes)[seq_len(min(length(avail_shapes), n_shapes))]
+    values = rep(names(avail_shapes), length.out = n_shapes)
   } else {
-    values = chosen_shapes
+    values = rep(chosen_shapes, length.out = n_shapes)
   }
 
   #BUILD THE LEGEND IF WE'RE GOING TO, BUT ONLY PUT IN TITLE IF THE USER PROVIDED ONE.
   guide_obj = if(isTRUE(include_shape_legend)) {
-    ggplot2::guide_legend(
-      override.aes = list(size = key_size)
-      )
+    ggplot2::guide_legend()
   } else {
     "none"
   }
@@ -773,11 +769,285 @@ geom_jitter_plus = function(mapping = NULL,
 }
 
 
+
+#' Add direct labels to grouped point or line plots
+#'
+#' [direct_labels_plus()] adds procedurally placed text labels to grouped
+#' point or line plots as an alternative to using a legend, which might be
+#' space-inefficient, off to one side away from where readers will see it,
+#' or force readers to jump their focus long distances to align groups with
+#' labels. The function is intended as a friendlier alternative to
+#' manually placing group labels via [ggplot2::annotate()]. Labels are drawn
+#' using [ggrepel::geom_label_repel()], so they'll repel one another as well
+#' as the plotted data they're labeling (within reason).
+#'
+#' This function is experimental. It currently works best for ordinary
+#' scatterplots and grouped line/path plots where each group has a visually
+#' meaningful position in two-dimensional (x/y) space. It will not
+#' work for every ggplot2 geometry, statistic, coordinate system, or faceting
+#' arrangement.
+#'
+#' @param data A data frame containing the variables to be both plotted and
+#' labelled. Most often, this will be the same data frame as supplied to
+#' [ggplot2::ggplot()] but needn't be.
+#' @param x,y Unquoted column names giving the x- and y-coordinates of the data
+#' to be plotted and thus also labelled.
+#' @param group Unquoted column name giving the grouping variable with which to
+#' label the underlying data. Must be a single unquoted column name and not an
+#' expression.
+#' @param placement Where labels should be placed relative to each group.
+#' One of "top", "right", "bottom", or "left". For geometry = "point", this
+#' controls the target location used to choose a representative point from each
+#' group. For geometry = "line", this chooses the endpoint or extreme point to
+#' label. Experimenting with different placements to find the one that works
+#' best for a particular graph is advised!
+#' @param geometry The kind of geometry being labelled. Currently supports
+#' "point" and "line".
+#' @param adj_fact A single numeric value controlling how far label targets are
+#' adjusted toward or away from the selected edge of each group. Values are
+#' interpreted as a proportion of the group-specific x- or y-range. Positive
+#' values move targets outward (towards the plot edge); negative values move
+#' them inward. For geometry = "point", this changes the target spot used to
+#' choose a particular point from each group to label, but does not move the
+#' final label anchor away from the selected point. In practice, this is likely
+#' not particularly useful for point geometries most of the time as a result.
+#' @param key_labels Optional replacement contents for the labels. May be one
+#' of:
+#' \itemize{
+#' \item NULL, in which case group values are used as labels (the default
+#' behavior);
+#' \item A labelling function;
+#' \item a named character vector of the form
+#' c("old_group_name" = "New label"); or
+#' \item an unnamed character vector with one label per group. Unnamed
+#' labels will be assigned to groups in alphanumeric order.
+#' }
+#' @param facet_vars Optional character vector of max length 2 (or else NULL)
+#' giving one or two faceting variables you're using to facet your plot. When
+#' supplied, label locations are calculated separately within each
+#' group-by-facet combination. This is useful when adding direct labels to
+#' faceted plots.
+#' @param ... Additional arguments passed along to
+#' [ggrepel::geom_label_repel()].
+#'
+#' @return A ggplot2 layer produced by [ggrepel::geom_label_repel()].
+#'
+#' @details
+#' For point geometries, direct_labels_plus() calculates one label location
+#' per group by finding the observed point closest to a group-specific target
+#' positioned towards one of the "edges" of a group's cluster of points.
+#' For "top" and "bottom" placement, the target is horizontally centered on
+#' the group's median x-value and vertically placed near the group's maximum or
+#' minimum y-value. For "left" and "right" placement, the same logic is
+#' applied with x and y reversed.
+#'
+#' For line geometries, labels are placed at the group-specific endpoint or
+#' extreme value implied by placement: the largest x-value for "right", the
+#' smallest x-value for "left", the largest y-value for "top", and the
+#' smallest y-value for "bottom". The final label anchor may then be adjusted
+#' by adj_fact.
+#'
+#' To help labels repel from plotted points or lines, the function silently adds
+#' empty-label rows at the original data coordinates. ggrepel does not draw
+#' these empty labels, but still uses their positions when placing visible
+#' labels. This helps to ensure, in general, that labels neither cover each other
+#' nor the underlying data they're labelling.
+#'
+#' Currently, the function sets defaults for the following parameters of
+#' [ggrepel::geom_label_repel()]: size (5), box.padding (0.5), max.overlaps
+#' (Inf), segment.size (1), and min.segment.length (0). However, these are
+#' overridable, if the user provides named arguments that at least partially
+#' match.
+#'
+#' Known limitations:
+#' \itemize{
+#' \item Label locations are calculated in the raw data space supplied to the
+#' function. Transformed scales, reversed axes, and non-Cartesian coordinate
+#' systems may give unexpected results. Pre-transform data rather than entering
+#' raw data and transforming later.
+#' \item coord_flip(), coord_polar(), map projections, and other coordinate
+#' transformations are not currently supported.
+#' \item The function places labels according to the data values supplied in
+#' `data`, not those subsequently generated by ggplot2 stat functions. For
+#' example, to label fitted smooth lines like those from
+#' [ggplot2::geom_smooth()], feed this function fitted values outputted from
+#' such a function instead of the raw data.
+#' \item Very dense plots or plots with many groups will likely still have
+#' overlapping or poorly placed labels. ggrepel helps, but it cannot make a
+#' crowded plot uncrowded. Alas.
+#' \item Polygon, ribbon, area, segment, curve, and spatial geometries are not
+#' currently supported but might be in the future.
+#' }
+#'
+#' @examples
+#' ggplot2::ggplot(iris, ggplot2::aes(Sepal.Length, Sepal.Width, color = Species)) +
+#' ggplot2::geom_point() +
+#' direct_labels_plus(
+#' data = iris,
+#' x = Sepal.Length,
+#' y = Sepal.Width,
+#' group = Species,
+#' placement = "right",
+#' geometry = "point"
+#' ) +
+#' ggplot2::guides(color = "none")
+#'
+#' line_data = ChickWeight |>
+#' dplyr::group_by(Diet, Time) |>
+#' dplyr::summarize(weight = mean(weight), .groups = "drop")
+#'
+#' ggplot2::ggplot(line_data, ggplot2::aes(Time, weight, color = Diet)) +
+#' ggplot2::geom_line(ggplot2::aes(group = Diet)) +
+#' direct_labels_plus(
+#' data = line_data,
+#' x = Time,
+#' y = weight,
+#' group = Diet,
+#' placement = "right",
+#' geometry = "line",
+#' adj_fact = 0.05
+#' ) +
+#' ggplot2::guides(color = "none")
+#'
+#' @export
+direct_labels_plus = function(data,
+                              x,
+                              y,
+                              group, #WHAT TO LABEL BY
+                              placement = "top", #WHERE TO PLACE THE LABELS RELATIVE TO THE EDGES OF THE PLOT
+                              geometry = "point", #LINES VS. POINTS
+                              adj_fact = 0, #HOW MUCH TO MOVE THE LABELS TOWARDS THE EDGE (POSITIVE) OR CENTER (NEGATIVE) OF THE PLOT
+                              key_labels = NULL, #WHAT TO PLACE INSIDE THE LABELS.
+                              facet_vars = NULL,
+                              ...) {
+
+  #CONFIRM VALID ARGS
+  placement = match.arg(placement, c("top", "right", "bottom", "left"))
+  geometry = match.arg(geometry, c("point", "line"))
+
+
+  ##EARLY FAILURE CHECKS
+  if(!is.data.frame(data)) {
+    stop("`data` must be a data frame.", call. = FALSE)
+  }
+
+  if(!is.null(facet_vars)) {
+
+    if(!is.character(facet_vars) || length(facet_vars) > 2) {
+      stop("`facet_vars` must be NULL or a character vector <= 2 column names.", call. = FALSE)
+    }
+
+    missing_facet_vars = setdiff(facet_vars, names(data))
+
+    if(length(missing_facet_vars) > 0) {
+      stop(
+        "`facet_vars` contains column name(s) not found in `data`: ",
+        paste(missing_facet_vars, collapse = ", "),
+        call. = FALSE
+      )
+    }
+
+  }
+
+  if(!is.numeric(adj_fact) || length(adj_fact) != 1 || is.na(adj_fact)) {
+    stop("`adj_fact` must be a single numeric value (a proportion of the horizontal/vertical range of the data to adjust the label targets by).", call. = FALSE)
+  }
+
+  group_quo = rlang::enquo(group)
+
+  if(!rlang::quo_is_symbol(group_quo)) {
+    stop("`group` must be a bare column name, not an expression.", call. = FALSE)
+  }
+
+  group_name = rlang::as_name(group_quo)
+
+  #PASS TO CORRECT HELPER ACCORDING TO GEOMETRY
+  if(geometry == "point") {
+
+    label_data = .directlabel_points(data = data,
+                                    x = {{x}},
+                                    y = {{y}},
+                                    group = {{group}},
+                                    placement = placement,
+                                    adj_fact = adj_fact,
+                                    facet_vars = facet_vars)
+
+  } else if(geometry == "line") {
+
+    label_data = .directlabel_lines(data = data,
+                                   x = {{x}},
+                                   y = {{y}},
+                                   group = {{group}},
+                                   placement = placement,
+                                   adj_fact = adj_fact,
+                                   facet_vars = facet_vars)
+
+  }
+
+  if(nrow(label_data) == 0) {
+    stop("No complete x/y/group observations are available for direct labeling.", call. = FALSE)
+  }
+
+  #TO REPEL AWAY FROM THE LINES/POINTS AS WELL AS OTHER LABELS, WE SILENTLY ADD THE GEOMETRIES AS LABEL-LESS ENTITIES
+  invis_points =  data %>%
+    dplyr::transmute(
+      x = {{x}},
+      y = {{y}},
+      .label_plus = "",
+      dplyr::across(dplyr::any_of(c(facet_vars, group_name)))
+    )
+
+  #IF USERS SUPPLIED CUSTOM LABELS, WE CAN APPLY THEM. A NAMED VEC OF OLD = NEW IS ADVISED.
+
+  label_data$.label_plus = .apply_key_labels_plus(label_data = label_data$.label_plus, key_labels = key_labels)
+
+  #BIND THE FAKE AND REAL LABEL DATA TOGETHER.
+  all_label_data = dplyr::bind_rows(label_data, invis_points)
+
+  ##PARTIAL MATCHING AND ARGUMENT COLLISIONS--TO SET DEFAULTS THAT ARE OVERRIDABLE.
+  dot.args = list(...)
+    any_size = .partial_match_user_arg(dot.args, "size")
+    any_boxpad = .partial_match_user_arg(dot.args, "box.padding")
+    any_maxover = .partial_match_user_arg(dot.args, "max.overlaps")
+    any_segsize = .partial_match_user_arg(dot.args, "segment.size")
+    any_minseg = .partial_match_user_arg(dot.args, "min.segment.length")
+
+    if(length(any_size) > 0) { use_size = any_size; dot.args = .remove_partial_match_user_arg(dot.args, "size") } else { use_size = 5 }
+    if(length(any_boxpad) > 0) { use_boxpad = any_boxpad; dot.args = .remove_partial_match_user_arg(dot.args, "box.padding") } else { use_boxpad = 0.5 }
+    if(length(any_maxover) > 0) { use_maxover = any_maxover; dot.args = .remove_partial_match_user_arg(dot.args, "max.overlaps") } else { use_maxover = Inf }
+    if(length(any_segsize) > 0) { use_segsize = any_segsize; dot.args = .remove_partial_match_user_arg(dot.args, "segment.size") } else { use_segsize = 1 }
+    if(length(any_minseg) > 0) { use_minseg = any_minseg; dot.args = .remove_partial_match_user_arg(dot.args, "min.segment.length") } else { use_minseg = 0 }
+
+  #THEN FINALLY PASS THIS ALL ALONG, ALONG WITH ANY DOT ARGS, TO GEOM_LABEL_REPEL.
+  do.call(
+    ggrepel::geom_label_repel,
+    c(
+      list(
+    data = all_label_data,
+    ggplot2::aes(x = x, y = y, label = .label_plus),
+    color = "black",
+    inherit.aes = FALSE,
+    show.legend = FALSE,
+    size = use_size,
+    box.padding = use_boxpad,
+    max.overlaps = use_maxover,
+    segment.size = use_segsize,
+    min.segment.length = use_minseg),
+    dot.args
+   )
+  )
+
+}
+
+
+
 #' Demo plot showing geom_point_plus() shapes
 #'
 #' A prebuilt ggplot object displaying the nine custom point shapes designed specifically for use in `geom_point_plus()`. As of Version 0.5.2, other shapes are also available, but those are not shown via this function. See the documentation for `geom_point_plus()` for details.
 #'
 #' @format A ggplot object.
+#'
+#' @return Returns a ggplot2 graph showing the ggplotplus shapes palette.
 #'
 #' @export
 geom_point_plus_shapes = function() {
@@ -869,7 +1139,7 @@ add_shape_plus = function(name = NULL,
   if(length(any_name) > 0) {
     name = any_name
     dot.args = .remove_partial_match_user_arg(dot.args, "name")
-    }
+  }
 
   #IF UNNAMED FIRST ARG COULD REASONABLY BE NAME, PUT IN THAT FORMAL NAME.
   if(is.character(dot.args[[1]]) &&

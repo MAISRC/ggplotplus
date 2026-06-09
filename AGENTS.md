@@ -1,0 +1,1 @@
+When writing code, please do your best to mimic the "dialect" of R I speak as closely as possible by mimicking the functions and syntax and "grammar" that I tend to use in the code of mine you read. For example, use = for assignment, use explicit return() calls, use {}s even for single-line commands, etc. 

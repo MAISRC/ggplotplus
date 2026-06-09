@@ -110,51 +110,51 @@ This graph is simple and reasonably effective—it's perfectly suitable for expl
 
 ...However, for presentation or publication, it falls short (at least, in Dr. Bajcz's professional opinion! YMMV) in several important respects. Some of these include:
 
--   **Text size**: The default text size for axis and legend text is too small for easy reading, especially for those with a notable amount of visual impairment (something that tends to rapidly advance with age, and the world's population is aging). A common rule of thumb is to size text such that it feels *almost* **too** large to help ensure it's large *enough* for someone with visual impairment. Said differently, one should err on the side of sizing important elements as big as they can get away with before doing so leads to other design problems.
+- **Text size**: The default text size for axis and legend text is too small for easy reading, especially for those with a notable amount of visual impairment (something that tends to rapidly advance with age, and the world's population is aging). A common rule of thumb is to size text such that it feels *almost* **too** large to help ensure it's large *enough* for someone with visual impairment. Said differently, one should err on the side of sizing important elements as big as they can get away with before doing so leads to other design problems.
 
--   **Point size**: The points are also quite small, which could hinder readability. The same mindset applies here—data elements should be as large and conspicuous as can be afforded.
+- **Point size**: The points are also quite small, which could hinder readability. The same mindset applies here—data elements should be as large and conspicuous as can be afforded.
 
--   **Color palette**: `ggplot2`'s default "rainbow" color palette lacks variance in **luminance** (how "bright" or "dark" the color is, aka how close to white/black it is). For a person with colorblindness (especially red-green colorblindness), the red and green shades are very difficult to distinguish. For those with no color vision at all, or for those using black-and-white viewing technologies (both of which are surprisingly common situations), all three colors used would be virtually indistinguishable.
+- **Color palette**: `ggplot2`'s default "rainbow" color palette lacks variance in **luminance** (how "bright" or "dark" the color is, aka how close to white/black it is). For a person with colorblindness (especially red-green colorblindness), the red and green shades are very difficult to distinguish. For those with no color vision at all, or for those using black-and-white viewing technologies (both of which are surprisingly common situations), all three colors used would be virtually indistinguishable.
 
--   **Foreground/background contrast**: While **contrast** (the ease with which nearby elements can be readily distinguished from one another) between the points and the background here is *ok*, it could be improved by using darker points and/or a lighter plot background. As noted above, it'd also help to have different color shades used for the points such that they contrasted better with each other. High contrast is critical for accessible and quickly interpretable graphs.
+- **Foreground/background contrast**: While **contrast** (the ease with which nearby elements can be readily distinguished from one another) between the points and the background here is *ok*, it could be improved by using darker points and/or a lighter plot background. As noted above, it'd also help to have different color shades used for the points such that they contrasted better with each other. High contrast is critical for accessible and quickly interpretable graphs.
 
--   **Whitespace and layout**: Default `ggplot`s can suffer from cramped layouts in some respects. When disparate elements (e.g., data points and axis labels) are very close together, it can be slower and more cognitively taxing to visually and mentally separate them. In particular, spacing in ggplots can often be tight between:
+- **Whitespace and layout**: Default `ggplot`s can suffer from cramped layouts in some respects. When disparate elements (e.g., data points and axis labels) are very close together, it can be slower and more cognitively taxing to visually and mentally separate them. In particular, spacing in ggplots can often be tight between:
 
-    -   Axis **titles** and their corresponding axis **labels.**
+  - Axis **titles** and their corresponding axis **labels.**
 
-    -   Items within the **legend(s).**
+  - Items within the **legend(s).**
 
-    -   Axis labels on densely labeled axes (not as much so here, but it's a common issue)
+  - Axis labels on densely labeled axes (not as much so here, but it's a common issue)
 
-    Adding more **void space** (space not housing an element) between components helps readers visually parse and process them easier and faster, especially those with significant cognitive or visual impairment.
+  Adding more **void space** (space not housing an element) between components helps readers visually parse and process them easier and faster, especially those with significant cognitive or visual impairment.
 
--   **Axis readability**: In `ggplot2`, axis and legend titles and labels default to the column names/values found in the data set unless the user sets custom text for them. These default title/label strings are often "computer-y" (e.g., they lack spaces, have unusual capitalization, and contain punctuation instead of spaces, etc.) rather than human-readable. Axis titles and labels should have standard spelling, spacing, and punctuation, and they should be human-interpretable. They should also contain units, if applicable, and avoid the use of obtuse abbreviations when possible.
+- **Axis readability**: In `ggplot2`, axis and legend titles and labels default to the column names/values found in the data set unless the user sets custom text for them. These default title/label strings are often "computer-y" (e.g., they lack spaces, have unusual capitalization, and contain punctuation instead of spaces, etc.) rather than human-readable. Axis titles and labels should have standard spelling, spacing, and punctuation, and they should be human-interpretable. They should also contain units, if applicable, and avoid the use of obtuse abbreviations when possible.
 
--   **Gridlines**: The research on the merits of gridlines is, admittedly, mixed! They:
+- **Gridlines**: The research on the merits of gridlines is, admittedly, mixed! They:
 
-    -   *Can* lack contrast with the background and with nearby data elements.
+  - *Can* lack contrast with the background and with nearby data elements.
 
-    -   Increase **cognitive load** (the amount of mental effort needed to integrate the available information to form a conclusion) by adding visual information to the plotting area that must be parsed and either integrated or (more likely) dismissed. When they're not needed (and, arguably, they very often aren't!), they constitute visual clutter that slows down interpretation.
+  - Increase **cognitive load** (the amount of mental effort needed to integrate the available information to form a conclusion) by adding visual information to the plotting area that must be parsed and either integrated or (more likely) dismissed. When they're not needed (and, arguably, they very often aren't!), they constitute visual clutter that slows down interpretation.
 
-    -   Are unhelpful when rendered for a categorical variable (the default behavior in `ggplot2`, though not applicable to this graph).
+  - Are unhelpful when rendered for a categorical variable (the default behavior in `ggplot2`, though not applicable to this graph).
 
-    On the flip side, gridlines are familiar to novice readers and can thus serve as a "foothold" for them to begin to understand a graph. They can also help readers estimate exact values when this is required (though, arguably, it very often isn't!).
+  On the flip side, gridlines are familiar to novice readers and can thus serve as a "foothold" for them to begin to understand a graph. They can also help readers estimate exact values when this is required (though, arguably, it very often isn't!).
 
-    By and large, though, most data visualization experts agree that graphs are **not** the most efficient device for conveying exact values. Text, tables, and raw-data-file sharing are all superior! The adage to remember is that graphs ought to *primarily* be about "vibes!"\
-    \
-    So, gridlines are *often* unnecessary. However, when a designer does deem them to be valuable, research has shown they can and should be as faint and as infrequent as possible to minimize their costs relative to their benefits. This advice does not generally correspond well to `ggplot2`'s default behaviors.
+  By and large, though, most data visualization experts agree that graphs are **not** the most efficient device for conveying exact values. Text, tables, and raw-data-file sharing are all superior! The adage to remember is that graphs ought to *primarily* be about "vibes!"\
+  \
+  So, gridlines are *often* unnecessary. However, when a designer does deem them to be valuable, research has shown they can and should be as faint and as infrequent as possible to minimize their costs relative to their benefits. This advice does not generally correspond well to `ggplot2`'s default behaviors.
 
--   **Incomplete axis labeling**: Axes should generally include tick marks and labels at both ends of the data range. This aligns with reader expectations (especially those of novice readers) and aids in efficient comprehension of the data. Axes are essentially "number lines," and so should be completely graduated by labels, just like number lines are. On this graph, though, both axes are missing one or more labels near the upper/lower limits of the data, which makes these axes feel visually "unfinished," as though we just "forgot" to label all the way up to the ends!
+- **Incomplete axis labeling**: Axes should generally include tick marks and labels at both ends of the data range. This aligns with reader expectations (especially those of novice readers) and aids in efficient comprehension of the data. Axes are essentially "number lines," and so should be completely graduated by labels, just like number lines are. On this graph, though, both axes are missing one or more labels near the upper/lower limits of the data, which makes these axes feel visually "unfinished," as though we just "forgot" to label all the way up to the ends!
 
--   **Overplotting**: When data elements partially or wholly overlap with one another (a *very* common problem in point-based graphs like scatterplots), it becomes hard to judge how many elements are present in a location. This limits the reader's ability to gauge data **density**. This is a hard data-viz problem to fix, but `ggplot2`'s default settings do not attempt to address it at all; it simply stacks any number of points on top of one another invisibly.
+- **Overplotting**: When data elements partially or wholly overlap with one another (a *very* common problem in point-based graphs like scatterplots), it becomes hard to judge how many elements are present in a location. This limits the reader's ability to gauge data **density**. This is a hard data-viz problem to fix, but `ggplot2`'s default settings do not attempt to address it at all; it simply stacks any number of points on top of one another invisibly.
 
--   **Vertically oriented y-axis title**: Research has consistently shown that text rotated away from horizontal (0 degrees) is harder to read for virtually every human on Earth—but especially for dyslexics, non-native readers of the language, users with motor or visual impairment, and those with certain technological limitations, among others. Despite this, the y-axis title is almost always rotated 90 degrees from horizontal in scientific graphs (not just in ggplots). This also means that it's printed in a relatively unprominent location (in the left margin), so it's not one of the first elements a reader is likely to encounter. Since many graphs are “about” the y-axis variable, the y axis title deserves a more prominent location so readers encounter it sooner.
+- **Vertically oriented y-axis title**: Research has consistently shown that text rotated away from horizontal (0 degrees) is harder to read for virtually every human on Earth—but especially for dyslexics, non-native readers of the language, users with motor or visual impairment, and those with certain technological limitations, among others. Despite this, the y-axis title is almost always rotated 90 degrees from horizontal in scientific graphs (not just in ggplots). This also means that it's printed in a relatively unprominent location (in the left margin), so it's not one of the first elements a reader is likely to encounter. Since many graphs are “about” the y-axis variable, the y axis title deserves a more prominent location so readers encounter it sooner.
 
--   **Tick marks**: The **tick marks** on the axes are small and easily lost visually, though they can provide many of the same benefits of gridlines with much less cognitive load (they are the "gradations" on the "number lines"). These could be more prominent
+- **Tick marks**: The **tick marks** on the axes are small and easily lost visually, though they can provide many of the same benefits of gridlines with much less cognitive load (they are the "gradations" on the "number lines"). These could be more prominent
 
--   **Missing axis lines**: To better visually represent "number lines," and to also better demarcate the boundary between the plotting area and the axes areas, most graphs feature axis lines. However, `ggplot2`'s graphs tend to lack such lines by default.
+- **Missing axis lines**: To better visually represent "number lines," and to also better demarcate the boundary between the plotting area and the axes areas, most graphs feature axis lines. However, `ggplot2`'s graphs tend to lack such lines by default.
 
--   **Legend placement**: `ggplot2`'s default legend location (in the right-hand margin) is often space-inefficient, creating needlessly large voids above/below it. Plus, it tends to be encountered by readers relatively late when placed in this location. Data visualization best practices are to either integrate a legend's information into the plotting area directly (e.g., through direct labeling of lines) or else to place the legend somewhere both more prominent and more compact.
+- **Legend placement**: `ggplot2`'s default legend location (in the right-hand margin) is often space-inefficient, creating needlessly large voids above/below it. Plus, it tends to be encountered by readers relatively late when placed in this location. Data visualization best practices are to either integrate a legend's information into the plotting area directly (e.g., through direct labeling of lines) or else to place the legend somewhere both more prominent and more compact.
 
 This list isn’t exhaustive, but it illustrates how even a simple `ggplot` could require many adjustments to meet accessibility, clarity, and design standards. It has been Dr. Bajcz's personal experience that going from a base ggplot to a publishable one often requires several hundreds of lines of code-based adjustments! Not everyone has the time, patience, or wherewithal to do that much fiddling for every graph they make: hence, `ggplotplus`. It bundles together many of those hundreds of lines of code so that we can all just *start* much closer to where most of us would want to *finish*!
 
@@ -175,21 +175,21 @@ ggplot(data = iris,
 
 Hopefully, you can already see how big a difference this one function can make to the design of a graph! Let's discuss some of these design improvements in greater detail:
 
--   **Larger text** throughout for better readability.
+- **Larger text** throughout for better readability.
 
--   **Increased spacing** between key elements (like legend keys within the legend and between axis titles and their corresponding labels).
+- **Increased spacing** between key elements (like legend keys within the legend and between axis titles and their corresponding labels).
 
--   **Thicker and longer axis ticks** for greater visibility and easier distinguishing between them and data elements and between them and axis lines.
+- **Thicker and longer axis ticks** for greater visibility and easier distinguishing between them and data elements and between them and axis lines.
 
--   **Remove gridlines** by default (see later section on `gridlines_plus()` for how to selectively reintroduce them).
+- **Remove gridlines** by default (see later section on `gridlines_plus()` for how to selectively reintroduce them).
 
--   **White background** for highest contrast against most standard foreground elements (well, technically, it's a very subtle, warm offwhite, since true white can increase eyestrain with prolonged viewing).
+- **White background** for highest contrast against most standard foreground elements (well, technically, it's a very subtle, warm offwhite, since true white can increase eyestrain with prolonged viewing).
 
--   **Black axis lines** at the bottom and left for visual anchoring (but no top or right borders, which typically communicate no information and thus are extraneous).
+- **Black axis lines** at the bottom and left for visual anchoring (but no top or right borders, which typically communicate no information and thus are extraneous).
 
--   **Legend moved above the plot** as a horizontal stripe, which is more space-efficient and increases the likelihood it will be encountered early by readers.
+- **Legend moved above the plot** as a horizontal stripe, which is more space-efficient and increases the likelihood it will be encountered early by readers.
 
--   **All text rendered in black**, rather than the default dark gray for some elements, to maximize contrast with the light background.
+- **All text rendered in black**, rather than the default dark gray for some elements, to maximize contrast with the light background.
 
 Of course, everything is still customizable. If you don’t love a particular choice—say, the thickness of the axis lines or the legend’s location—you can adjust them, same as you normally would using `theme()`, except that you can pass the overrides straight into `theme_plus()` instead:
 
@@ -244,9 +244,9 @@ This allows `theme_plus()` to set more accessible default color palettes while s
 \
 However, it excludes, by default, the lightest yellow hues from the `viridis` palette because these tend to lack contrast with other light-colored elements as well as with backgrounds in ggplots, when tend to be white. As a result, the remaining palette includes just the purple/blue/teal/green region. However, you can easily adjust this using the function's `begin_discrete` and `end_discrete` input parameters, which take values ranging between 0 and 1:
 
--   `begin_discrete = 0.28` would disable the dark purple portion of the color range, such as when you have many other dark elements or a dark background.
+- `begin_discrete = 0.28` would disable the dark purple portion of the color range, such as when you have many other dark elements or a dark background.
 
--   `end_discrete = 1` would enable the light yellow portion, such as when you don't have other light elements or a light background.
+- `end_discrete = 1` would enable the light yellow portion, such as when you don't have other light elements or a light background.
 
 ```{r bringing in dark purple, message=FALSE}
 #SAME GRAPH AS BEFORE EXCEPT...
@@ -300,9 +300,9 @@ This functionality allows `theme_plus()` to replace many of the default settings
 
 For example, in the above graph, we can see that `theme_plus()` has made:
 
--   The points are **larger** and thus easier to parse.
+- The points are **larger** and thus easier to parse.
 
--   The **shape** of these points hollow circles (by changing the default shape from R's shape 16 to shape **21)**.
+- The **shape** of these points hollow circles (by changing the default shape from R's shape 16 to shape **21)**.
 
 The latter change is important because shape 16 only supports the `color` aesthetic, whereas shape 21 supports **both** `color` (for the stroke/outline) and `fill` (for the interior). This gives us more flexibility in our design.
 
@@ -384,11 +384,11 @@ Now, there might be reasons we'd want points *within the plotting area* to be sm
 
 So, `ggplotplus` will coerce legend key symbols back to full opacity and a reasonable size (`5`) unless you:
 
--   Set `override_legend_alphasize` to `FALSE`, as we did above (this can also be done via `gridlines_plus()` and `yaxis_title_plus()` as well!).
+- Set `override_legend_alphasize` to `FALSE`, as we did above (this can also be done via `gridlines_plus()` and `yaxis_title_plus()` as well!).
 
--   You set `guide = 'none'` inside a `scale_*` function or `guides()`.
+- You set `guide = 'none'` inside a `scale_*` function or `guides()`.
 
--   You specify your own legend overrides for `size` and/or `alpha` via `guide_legend(override.aes = list(...))`.
+- You specify your own legend overrides for `size` and/or `alpha` via `guide_legend(override.aes = list(...))`.
 
 If you map just one of the two aesthetics, the overrides will automatically apply to only the other. For example:
 
@@ -437,11 +437,11 @@ ggplot(iris,
 
 Here’s what’s happening:
 
--   **Global mappings** of `x = Species` and `y = Sepal.Length` apply to *both* the boxplot and the jittered points layers.
+- **Global mappings** of `x = Species` and `y = Sepal.Length` apply to *both* the boxplot and the jittered points layers.
 
--   The **fill aesthetic** is mapped to `Species`, but **only locally** within the jittered points layer, so the boxplots are unaffected and don't get species-specific fill colors.
+- The **fill aesthetic** is mapped to `Species`, but **only locally** within the jittered points layer, so the boxplots are unaffected and don't get species-specific fill colors.
 
--   The **alpha aesthetic** is set to a constant (0.3), again **only locally** for the jittered points. This means all points get this value, but the boxplots are unaffected.
+- The **alpha aesthetic** is set to a constant (0.3), again **only locally** for the jittered points. This means all points get this value, but the boxplots are unaffected.
 
 If you map the *same aesthetic* in multiple places (e.g., globally and locally), the **local mapping always wins**—it overrides any global specification for that layer. Also, if you try to map an aesthetic to both a variable *and* a constant, the constant (usually) wins.
 
@@ -449,11 +449,11 @@ If you map the *same aesthetic* in multiple places (e.g., globally and locally),
 
 We bring all this up just to say that all of the same rules apply when using `ggplotplus`. You can:
 
--   Map aesthetics globally or locally.
+- Map aesthetics globally or locally.
 
--   Map aesthetics to variables in your data set or set them to constants.
+- Map aesthetics to variables in your data set or set them to constants.
 
--   Combine the approaches as needed–conflicts will resolve as they normally do in `ggplot2`.
+- Combine the approaches as needed–conflicts will resolve as they normally do in `ggplot2`.
 
 Here’s a similar plot with a few tweaks to illustrate this further:
 
@@ -470,9 +470,9 @@ ggplot(iris,
 
 In this version:
 
--   **Fill** is now applied to *both* geoms, since it’s being mapped globally inside of `ggplot()`.
+- **Fill** is now applied to *both* geoms, since it’s being mapped globally inside of `ggplot()`.
 
--   **Color** is also mapped globally but overridden locally in the boxplot layer (so boxplot outlines are blue, regardless of `Petal.Length`).
+- **Color** is also mapped globally but overridden locally in the boxplot layer (so boxplot outlines are blue, regardless of `Petal.Length`).
 
 ### Geom Availability
 
@@ -571,8 +571,7 @@ ggplot(iris,
            y = Sepal.Length)) +
   geom_point(mapping = aes(fill = Petal.Width), #<--SWAP TO A CONTINUOUS VARIABLE.
             alpha = 0.3) +
-  theme_plus(begin_discrete = 0, 
-              end_discrete = 1) +
+  theme_plus() + #<--NO LONGER NEEDED--WE'LL USE FULL CIVIDIS SCALE.
   scale_continuous_plus(scale = "x",
     name = "Petal length (cm)", 
     thin.labels = TRUE) +   
@@ -590,8 +589,7 @@ ggplot(iris,
            y = Sepal.Length)) +
   geom_point(mapping = aes(fill = Petal.Width),
             alpha = 0.3) +
-  theme_plus(begin_discrete = 0, 
-              end_discrete = 1) +
+  theme_plus() +
   scale_continuous_plus(scale = "x",
     name = "Petal length (cm)", 
     thin.labels = TRUE) +   
@@ -611,8 +609,7 @@ ggplot(iris,
            y = Sepal.Length)) +
   geom_point(mapping = aes(fill = Petal.Width),
             alpha = 0.3) +
-  theme_plus(begin_discrete = 0, 
-              end_discrete = 1) +
+  theme_plus() +
   scale_continuous_plus(scale = "x",
     name = "Petal length (cm)", 
     thin.labels = TRUE) +   
@@ -620,7 +617,7 @@ ggplot(iris,
     name = "Sepal length (cm)") +
   scale_continuous_plus(scale = "fill",
     name = "Petal width (cm)",
-    split_name = TRUE  #<--ADD A THIRD FOR FILL
+    split_name = TRUE  #DIVIDE ONTO NEW LINES BY SPACES
     )
 ```
 
@@ -632,8 +629,7 @@ ggplot(iris,
            y = Sepal.Length)) +
   geom_point(mapping = aes(fill = Petal.Width),
             alpha = 0.3) +
-  theme_plus(begin_discrete = 0, 
-              end_discrete = 1) +
+  theme_plus() +
   scale_continuous_plus(scale = "x",
     name = "Petal length (cm)", 
     thin.labels = TRUE) +   
@@ -650,7 +646,7 @@ To know how many labels you need to provide, you may need to render your plot fi
 
 ## Y Axis Title Orientation and Location
 
-Our graph is nearly "perfect" (at least, in our estimation!)—but one signifcant design issue remains: the **y-axis title** is still vertically oriented and tucked away in the plot's left-hand margin. Let’s change that.
+Our graph is nearly "perfect" (at least, in our estimation!)—but one significant design issue remains: the **y-axis title** is still vertically oriented and tucked away in the plot's left-hand margin. Let’s change that.
 
 In base `ggplot2`, you *can* reorient the title to be horizontal, at least, using a few hacky adjustments involving line breaks and theme tweaks:
 
@@ -660,9 +656,7 @@ ggplot(iris,
            y = Sepal.Length)) +
   geom_point(mapping = aes(fill = Petal.Width),
             alpha = 0.3) +
-  theme_plus(begin_discrete = 0, 
-              end_discrete = 1,
-             axis.title.y = element_text( #<--CHANGE Y AXIS TITLE TO VERTICALLY JUSTIFIED AND HORIZONTAL.
+  theme_plus(axis.title.y = element_text( #<--CHANGE Y AXIS TITLE TO VERTICALLY JUSTIFIED AND HORIZONTAL.
                vjust = 0.5, 
                angle = 0)) +
   scale_continuous_plus(scale = "x",
@@ -679,11 +673,11 @@ ggplot(iris,
 
 This works *reasonably* well. It's readable, and it's *relatively* simple to implement, if you know how (but that's a **big** if for many `ggplot2` beginners!). But it has limitations:
 
--   It steals horizontal space in the graph's "center row" from your data, much as a right-hand legend would, forcing a similar amount of wasted void space above and below it.
+- It steals horizontal space in the graph's "center row" from your data, much as a right-hand legend would, forcing a similar amount of wasted void space above and below it.
 
--   It keeps the label in a *relatively* unprominent location, where readers may not encounter it early.
+- It keeps the label in a *relatively* unprominent location, where readers may not encounter it early.
 
--   It doesn’t scale well to longer axis titles or those with long, unbreakable words. If we want a descriptive, detail-rich title, it's hard to achieve that with this approach.
+- It doesn’t scale well to longer axis titles or those with long, unbreakable words. If we want a descriptive, detail-rich title, it's hard to achieve that with this approach.
 
 To get around these challenges, `ggplotplus` includes `yaxis_title_plus()`, which "surgically" moves the y-axis title to above the y-axis line, left-justified to the plot margin:
 
@@ -693,8 +687,7 @@ ggplot(iris,
            y = Sepal.Length)) +
   geom_point(mapping = aes(fill = Petal.Width),
             alpha = 0.3) +
-  theme_plus(begin_discrete = 0, 
-              end_discrete = 1) + #<--NO THEME ADJUSTMENTS.
+  theme_plus() + #<--NO THEME ADJUSTMENTS.
   scale_continuous_plus(scale = "x",
     name = "Petal length (cm)", 
     thin.labels = TRUE) +   
@@ -710,15 +703,15 @@ ggplot(iris,
 
 This may seem a *little* radical at first, but this small adjustment has many potential benefits that data visualization experts have been championing for decades:
 
--   **Prominence**: Readers of left-to-right, top-to-bottom languages naturally start in the upper-left (we read this the **"Z reading frame,"** which is to say we read in a pattern that traces one or more Zs, starting at the top-left of an element), so the y-axis title is now one of the *first* elements many readers will encounter.
+- **Prominence**: Readers of left-to-right, top-to-bottom languages naturally start in the upper-left (we read this the **"Z reading frame,"** which is to say we read in a pattern that traces one or more Zs, starting at the top-left of an element), so the y-axis title is now one of the *first* elements many readers will encounter.
 
--   **Readability**: The title is horizontal, making it easier and faster to read for all kinds of people in all kinds of contexts.
+- **Readability**: The title is horizontal, making it easier and faster to read for all kinds of people in all kinds of contexts.
 
--   **Space efficiency**: Instead of taking up room in the "data row" of the graph, the title sits in a narrow horizontal band *above* the plot, freeing up the core of the graphing area for your data to shine.
+- **Space efficiency**: Instead of taking up room in the "data row" of the graph, the title sits in a narrow horizontal band *above* the plot, freeing up the core of the graphing area for your data to shine.
 
--   **Pseudo-title element**: Many graph design advocates recommend against using plot titles. The reason is that, at best, titles tend to do what good y-axis titles and figure captions already do, only worse. However, research does suggest novice graph readers find titles helpful as "footholds." By moving the y-axis title to where a plot (sub)title might go, we allow it to serve a similar purpose but with no risk of being repetitive with a plot title.
+- **Pseudo-title element**: Many graph design advocates recommend against using plot titles. The reason is that, at best, titles tend to do what good y-axis titles and figure captions already do, only worse. However, research does suggest novice graph readers find titles helpful as "footholds." By moving the y-axis title to where a plot (sub)title might go, we allow it to serve a similar purpose but with no risk of being repetitive with a plot title.
 
--   **No ambiguity**: One hazard with moving the y-axis title to anywhere other than its "normal" location is that it may become unclear what it refers to. By anchoring it above the y-axis line and left-justifying it to the left edge of the y-axis labels, there's little, if any, ambiguity as to its purpose. This is aided by `theme_plus()`'s default behavior to place any legend title at the top of the plot to the right rather than to the left of the legend keys.
+- **No ambiguity**: One hazard with moving the y-axis title to anywhere other than its "normal" location is that it may become unclear what it refers to. By anchoring it above the y-axis line and left-justifying it to the left edge of the y-axis labels, there's little, if any, ambiguity as to its purpose. This is aided by `theme_plus()`'s default behavior to place any legend title at the top of the plot to the right rather than to the left of the legend keys.
 
 Moving the y-axis title in this way is backed by **decades of advocacy** from the data visualization community. So while it's optional, it's not a fringe or new idea! Give it a try–you just might find you like it better too!
 
@@ -736,13 +729,12 @@ ggplot(iris,
            y = Sepal.Length)) +
   geom_point(mapping = aes(fill = Petal.Width),
             alpha = 0.3) +
-  theme_plus(begin_discrete = 0, 
-              end_discrete = 1) + #<--NO THEME ADJUSTMENTS.
+  theme_plus() + 
   scale_continuous_plus(scale = "x",
     name = "Petal length (cm)", 
     thin.labels = TRUE) +   
   scale_continuous_plus(scale = "y",
-    name = "Sepal length (cm)") + #<--NO HACKS TO TITLE NEEDED.
+    name = "Sepal length (cm)") + 
   scale_continuous_plus(scale = "fill",
     name = "Petal width (cm)",
     split_name = TRUE, 
@@ -750,6 +742,195 @@ ggplot(iris,
     ) +
   yaxis_title_plus(nudgeTopLegendDown = TRUE) #<--MOVE TOP LEGEND(S) DOWN INTO SAME ROW AS Y AXIS TITLE. 
 ```
+
+## (EXPERIMENTAL) Direct Labeling as an Alternative to a Legend
+
+When mapping categorical data to a non-positional visual channel (such as the x or y-axes), the most common approach is to use a **legend** to clarify which categories in the data correspond to which styles, orientations, symbols, colors, etc. are shown. As we've seen, legends can be designed to be efficiently placed along a reader's likely Z reading frame by placing them horizontally above or below the plot.
+
+However, this can still be relatively space-inefficient and demanding on the reader relative to another option often recommended by data visualization experts: **direct labeling.** This is where labels are placed within the plotting area to mark groups in lieu of a legend. This concentrates information, prevents readers from having to jump their gaze back and forth between the plotting area and the legend, and reduces the risk a reader may fail to notice a legend when forming initial conclusions, among other potential benefits.
+
+In practice, direct labeling in `ggplot2` is a little cumbersome. Generally, one would use `ggplot2`'s `annotate()` or `geom_text()` functions to manually choose a location for each label, guessing and checking to ensure adequate sizing and placement and to avoid overlapping labels with each other or with underlying points.
+
+To demonstrate, let's bin petal widths so we have a second categorical variable other than `Species` to work with:
+
+```{r manual annotations baseline, message=FALSE}
+#| fig-height: 6
+#| fig-width: 9
+
+
+iris$Petal.Width.Binned = ggplot2::cut_interval(
+  iris$Petal.Width,
+  n = 4,
+  labels = c("Small", "Medium", "Large", "Very large")
+) #<--CUT INTO 4 GROUPS BY PETAL.WIDTH VALUE
+
+ggplot(iris,
+       mapping = aes(x = Petal.Length, 
+                     y = Sepal.Length)) +
+  geom_point(mapping = aes(fill = Petal.Width.Binned), #<--MOVE TO A DISCRETE FILL MAPPING.
+             alpha = 0.7) + #<--LESS TRANSPARENT FOR BETTER GROUP CLARITY.
+  theme_plus(begin_discrete = 0, #<--RETURN TO FULL DISCRETE SCALE.
+             end_discrete = 1) + 
+  scale_continuous_plus(scale = "x",
+                        name = "Petal length (cm)", 
+                        thin.labels = TRUE) +   
+  scale_continuous_plus(scale = "y",
+                        name = "Sepal length (cm)") + 
+  labs(fill = "Petal width") +
+  yaxis_title_plus() #<--DON'T NUDGE
+```
+
+Here's how one might direct-label groups in this plot:
+
+```{r manual labels, message=FALSE}
+#| fig-height: 6
+#| fig-width: 9
+
+ggplot(iris,
+       mapping = aes(x = Petal.Length, 
+                     y = Sepal.Length)) +
+  geom_point(mapping = aes(fill = Petal.Width.Binned), 
+             alpha = 0.7) + 
+  theme_plus(begin_discrete = 0, 
+             end_discrete = 1) + 
+  scale_continuous_plus(scale = "x",
+                        name = "Petal length (cm)", 
+                        thin.labels = TRUE) +   
+  scale_continuous_plus(scale = "y",
+                        name = "Sepal length (cm)") + 
+  yaxis_title_plus() +
+  annotate(geom = "text", x = 1.5, y = 6.3, label = "Small\npetal\nwidths") + #<-MANUAL ANNOTATIONS, ONE PER GROUP, WITH AN X AND Y MANUALLY SELECTED THRU TRIAL AND ERROR.
+  annotate(geom = "text", x = 3.25, y = 6.25, label = "Medium\npetal\nwidths") +
+  annotate(geom = "text", x = 4.3, y = 7.5, label = "Large\npetal\nwidths") +
+  annotate(geom = "text", x = 6.8, y = 7, label = "Very large\npetal\nwidths") +
+  guides(fill = "none") #<-NO LONGER A NEED FOR A LEGEND.
+```
+
+This works, but it's a bit tedious and requires manual trial and error to get the positioning right. Plus, in this case, there's some ambiguity about which groups go with which labels for the two right-most groups.
+
+`direct_labels_plus()` leverages the `geom_label_repel()` function from the `ggrepel` package. The latter allows you to place labels on points, lines, or other data elements that will then repel one another using an algorithm so they don't bunch up. `direct_labels_plus()` extends that functionality to include repelling labels away from not only each other but the data elements they might be labeling too so the labels will not (generally) cover up the data. Here's how to use it:
+
+```{r direct_labels_plus, message=FALSE}
+#| fig-height: 6
+#| fig-width: 9
+
+ggplot(iris,
+       mapping = aes(x = Petal.Length, 
+                     y = Sepal.Length)) +
+  geom_point(mapping = aes(fill = Petal.Width.Binned), 
+             alpha = 0.7) + 
+  theme_plus(begin_discrete = 0, 
+             end_discrete = 1) + 
+  scale_continuous_plus(scale = "x",
+                        name = "Petal length (cm)", 
+                        thin.labels = TRUE) +   
+  scale_continuous_plus(scale = "y",
+                        name = "Sepal length (cm)") + 
+  yaxis_title_plus() +
+  guides(fill = "none") +
+  direct_labels_plus(data = iris, #<--PROVIDE THE DATA AGAIN.
+                     x = Petal.Length, #<-SPECIFY THE X AND Y VARIABLES AGAIN.
+                     y = Sepal.Length, 
+                     group = Petal.Width.Binned, #<--SPECIFY VARIABLE TO LABEL BY.
+                     placement = "top", #<-SHOULD LABELS BE TOWARDS THE TOP, RIGHT, BOTTOM, OR LEFT EDGE OF A GROUP'S POINTS/LINES?
+                     geometry = "point", #POINTS OR LINES TO LABEL?
+                     key_labels = c("Small" = "Small\npetal\nwidths", #PROVIDE key_labels A NAMED VECTOR TO REPLACE THE CONTENTS OF LABELS USING "OLD NAME" = "NEW NAME" FORMAT.
+                       "Medium" = "Medium\npetal\nwidths", 
+                       "Large" = "Large\npetal\nwidths", 
+                       "Very large" = "Very large\npetal\nwidths")
+                     )
+```
+
+Here, at least, this configuration works well–there's no ambiguity about which fill colors go with which labels, we eliminate the need for a legend, and there was ample void space within the plotting area to facilitate this approach.
+
+While I wouldn't necessarily recommend using direct labeling in the context of faceting ("small multiples"), `direct_labels_plus()` will work with faceting so long as you supply either or both faceting variables to `facet_vars`:
+
+```{r faceting with direct labels, message = F}
+#| fig-height: 6
+#| fig-width: 9
+
+ggplot(iris,
+       mapping = aes(x = Petal.Length, 
+                     y = Sepal.Length)) +
+  geom_point(mapping = aes(fill = Petal.Width.Binned), 
+             alpha = 0.7) + 
+  theme_plus(begin_discrete = 0, 
+             end_discrete = 1) + 
+  scale_continuous_plus(scale = "x",
+                        name = "Petal length (cm)", 
+                        thin.labels = TRUE) +   
+  scale_continuous_plus(scale = "y",
+                        name = "Sepal length (cm)") + 
+  yaxis_title_plus() +
+  guides(fill = "none") +
+  direct_labels_plus(data = iris, 
+                     x = Petal.Length, 
+                     y = Sepal.Length, 
+                     group = Petal.Width.Binned, 
+                     facet_vars = "Species", #<--SUPPLY A 1- OR 2-LENGTH CHARACTER VECTOR OF THE VARIABLES YOU'LL USE IN FACETING. 
+                     placement = "top", 
+                     geometry = "point",
+                     size = 5, 
+                     box.padding = 0.5,
+                     max.overlaps = Inf, 
+                     segment.size = 1,
+                     min.segment.length = 0,
+                     key_labels = c("Small" = "Small\npetal\nwidths", 
+                                    "Medium" = "Medium\npetal\nwidths", 
+                                    "Large" = "Large\npetal\nwidths", 
+                                    "Very large" = "Very large\npetal\nwidths")
+  ) +
+  facet_grid(. ~ Species) #<--FACET INTO COLUMNS BY SPECIES
+```
+
+`direct_labels_plus()` will also work with line-type graphs:
+
+```{r direct labeling lines, message = F}
+##COMPLETELY DIFFERENT DATA TO SHOW DIRECT LABELLING ON A LINE GRAPH
+ggplot(Orange, aes(
+  x = age,
+  y = circumference,
+  color = factor(Tree, levels = unique(sort(as.numeric(Tree)))) #<--TO MAKE CATEGORICAL DATA.
+)) +
+  geom_line() +
+  theme_plus() +
+  gridlines_plus() +
+  yaxis_title_plus() +
+  scale_continuous_plus(scale = "x", name = "Age (years)") +
+  scale_continuous_plus(scale = "y", name = "Circumference (cm)") +
+  labs(color = "Tree") +
+  scale_color_discrete(guide = "none") +
+  direct_labels_plus(
+    data = Orange,
+    x = age,
+    y = circumference,
+    group = Tree,
+    placement = "right",
+    geometry = "line",
+    size = 5, 
+    box.padding = 0.5,
+    max.overlaps = Inf, 
+    segment.size = 1,
+    min.segment.length = 0,
+    key_labels = paste("Tree", 1:5) #<--IF PROVIDING AN UNNAMED VECTOR, THE GROUPS WILL BE RELABELED IN ALPHANUMERIC ORDER. 
+  )
+```
+
+### Cautions and Limitations
+
+This functionality is relatively new and highly experimental; its implementation will likely continue to change and develop in the short term. It will also depend on the continued development of the `ggrepel` package, upon which `direct_labels_plus()` depends.
+
+More practically, though, this functionality only makes good sense to use in situations where a legend would otherwise be needed, groups aren't already self-evident, there's void space enough within the plotting area for sufficiently sized labels, the labels won't overlap the data elements, and a standard coordinate system is being used.
+
+While this can work with transformed data, it determines label locations on the data it's provided, not on any transformed versions `ggplot2` might subsequently create. So, for example, if you intend to plot log-transformed y data, pre-transform them *before* providing them to `direct_labels_plus()`. Similarly, this will not work with `ggplot2::geom_smooth()` unless you provide fitted values from the smoothing function to `direct_labels_plus()`.
+
+At present, this function is not designed to work with polygonal data elements, though such functionality might be added in the future. Similarly, this function does not yet work with `geom_ribbon()`, `geom_segment()`, or `geom_curve()` though it might in the future.
+
+Notably, this function is not designed to work with non-standard coordinate systems like those produced by `coord_flip()` or `coord_polar()`, though you could possibly have success using it if you provide transformed data that make sense in the new coordinate systems.
+
+If you are not initially able to get a satisfying configuration of labels, in particular because they are overlapping the data you're trying to show/label, I recommend cycling through all available options for `placement`, as some might be more workable than others for a given graph. You may also consider adjusting the `size` parameter down or the `box.padding` parameter up (see `?ggrepel::geom_label_repel()` for details), but keep accessibility in mind as you do so. `adj_fact` can also be adjusted, similarly to `ggrepel::geom_label_repel()`'s `nudge_y` and `nudge_x`, to alter the target positions for labels in an attempt to place them more favorably. Lastly, consider raising the `force` value for `ggrepel::geom_label_repel()` to increase the intensity of the repulsion.
+
+However, none of these options–nor this functionality overall–is guaranteed to work well in every case, especially when the density of data elements is high, the categories to label are numerous, and/or the volume of void space in the plotting is low. Discretion is advised!
 
 ## Thoughtful Gridlines
 

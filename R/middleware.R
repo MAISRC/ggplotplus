@@ -6,7 +6,13 @@
 #' @importFrom polyclip polyclip
 #' @importFrom scales pretty_breaks pal_viridis
 #' @importFrom viridisLite viridis
+#' @importFrom dplyr %>% slice_max mutate group_by across all_of if_else slice_min select any_of ungroup
+#' @importFrom stats median
+#' @importFrom utils globalVariables
 NULL
+
+##THIS HELPS THE R CMD CHECKER KNOW THESE "VARIABLES" ARE MADE DURING DPLYR CHAINS AND ARE THUS BOUND BY DPLYR'S EVALUATION SCHEME AND SHOULDN'T BE VIEWED AS GLOBAL VARIABLES.
+. = .label_plus = x_range = y_range = target_x = target_y = dist_to_target = NULL
 
 
 # CUSTOM OBJECTS ----------------------------------------------------------
@@ -86,7 +92,7 @@ geom_plus_defaults = list(
   ),
   col = list(
     aes = list(fill = "transparent"),
-    params = list()
+    params = list(width = 0.8)
   ),
   histogram = list(
     aes = list(fill = "transparent"),
@@ -815,7 +821,7 @@ geom_plus_defaults = list(
 #'
 #' @return A cleaned shape data frame containing only \code{x}, \code{y}, and
 #'   \code{piece}. The \code{piece} column is converted to sequential integers if
-#'   it wasn't already formatted thusly.
+#'   it wasn't already formatted like that.
 #'
 #' @keywords internal
 .validate_pointplus_shape = function(shape, name = NULL) {
@@ -1023,7 +1029,7 @@ geom_plus_defaults = list(
 #' @keywords internal
 .has_plot_guide_none_for_aes = function(plot, aes_name) {
 
-  guide = plot@guides$get_guide(aes_name)
+  guide = plot@guides$guides[[aes_name]]
 
   identical(guide, "none") ||
     inherits(guide, "GuideNone")
@@ -1048,6 +1054,70 @@ geom_plus_defaults = list(
 .guide_is_none_for_aes = function(plot, aes_name) {
   .has_guide_none_for_aes(plot, aes_name) ||
     .has_plot_guide_none_for_aes(plot, aes_name)
+}
+
+
+#' Check whether an aesthetic is mapped to a continuous (numeric) variable
+#'
+#' Internal helper that determines whether a given aesthetic is mapped to a
+#' continuous variable. Used to guard legend override operations that are
+#' appropriate only for discrete legends (not colorbars), because applying a
+#' \code{guide_legend()} to a continuous scale would suppress the colorbar.
+#'
+#' The helper first checks for an explicit continuous scale on the plot. If
+#' none is found, it inspects the mapped expression and looks up the variable
+#' in the plot and layer data to determine whether it's numeric.
+#'
+#' @param plot A ggplot object.
+#' @param aes_name A single character string giving the aesthetic to check.
+#'
+#' @return A logical scalar. Returns \code{TRUE} if the aesthetic appears to be
+#'   mapped to a continuous variable; otherwise returns \code{FALSE}.
+#'
+#' @keywords internal
+.aes_mapped_var_is_continuous = function(plot, aes_name) {
+
+  #IF THE SCALE FOR THIS AES IS NOT NULL (SO, THERE IS ONE, YOU SEE IF IT INHERITS GGPLOT2'S CVONTINUOUS SCALES.)
+  scale = plot@scales$get_scales(aes_name)
+  if(!is.null(scale)) {
+    return(inherits(scale, "ScaleContinuous"))
+  }
+
+  #OTHERWISE, CHECK THE MAPPING TO SEE IF THIS AES HAS BEEN MAPPED.
+  mapping = plot@mapping[[aes_name]]
+
+  #ALSO GO THRU THE LOCAL LAYERS, IN CASE IT WAS MAPPED LOCALLY RATHER THAN GLOBALLY.
+  data_frames = list()
+  if(is.data.frame(plot@data)) {
+    data_frames = c(data_frames, list(plot@data))
+  }
+
+  for(layer in plot@layers) {
+    if(is.null(mapping) && !is.null(layer$mapping[[aes_name]])) {
+      mapping = layer$mapping[[aes_name]]
+    }
+    if(is.data.frame(layer$data)) {
+      data_frames = c(data_frames, list(layer$data))
+    }
+  }
+
+  if(is.null(mapping)) {
+    return(FALSE)
+  }
+
+  var_name = tryCatch(rlang::as_name(mapping), error = function(e) { NULL })
+  if(is.null(var_name)) {
+    return(FALSE)
+  }
+
+  #FINALLY, SEE IF THE VARIABLE MAPPED TO THIS AES IS NUMERIC IN ANY LAYER.
+  for(df in data_frames) {
+    if(var_name %in% names(df)) {
+      return(is.numeric(df[[var_name]]))
+    }
+  }
+
+  FALSE #FAIL.
 }
 
 
@@ -1206,3 +1276,302 @@ geom_plus_defaults = list(
 
   aes_name
 }
+
+
+#' Choose direct-label anchor points for grouped point data
+#'
+#' directlabel_points() is an internal helper used by
+#' [direct_labels_plus()] when geometry = "point". It chooses one observed
+#' point per group, or per group-by-facet combination, to use as the anchor
+#' location for a direct label. How the label is then drawn with respect to that
+#' chosen point is determined by [ggrepel::geom_label_repel()].
+#'
+#' The helper works by calculating a target location for each group and then
+#' selecting the observed point closest to that target. For "top" and
+#' "bottom" placements, the target is centered at the group's median x-value
+#' and then shifted toward the group's maximum or minimum y-value. For "left"
+#' and "right" placements, the same logic is applied with x and y reversed.
+#'
+#' @param data A data frame containing the variables to be plotted and labelled.
+#' @param x,y Unquoted column names giving the x- and y-variables.
+#' @param group Unquoted column name giving the grouping variable from which to
+#' construct labels.
+#' @param placement Character string giving the preferred label placement
+#' relative to each group's cloud of points. One of "top", "right", "bottom",
+#' or "left".
+#' @param adj_fact A single numeric value giving the proportional adjustment
+#' applied to the group-specific target location. For point data, this changes
+#' the target used to choose the labelled point, but does not move the final
+#' label anchor away from the selected observed point.
+#' @param facet_vars Optional character vector of facet variable names. When
+#' supplied, label anchor points are calculated separately within each
+#' group-by-facet combination.
+#'
+#' @return A tibble with one row per group or group-by-facet combination. The
+#' returned data include standardized x and y columns, .label_plus, and
+#' any grouping or faceting variables needed by ggplot2 to assign labels to
+#' panels correctly.
+#'
+#' @details
+#' This helper assumes that label locations should be tied to observed points.
+#' It therefore never invents a new x/y coordinate for point labels. Empty or
+#' all-missing groups should be screened before this helper is called.
+#'
+#' @keywords internal
+.directlabel_points = function(data,
+                              x,
+                              y,
+                              group,
+                              placement,
+                              adj_fact,
+                              facet_vars) {
+
+  group_name = rlang::as_name(rlang::enquo(group))
+
+  label_data = data %>%
+    dplyr::mutate(
+      x = {{x}},
+      y = {{y}},
+      .label_plus = as.character({{group}}))
+
+  group_vars = unique(c(group_name, facet_vars)) #CALC LABEL LOCATIONS PER GROUP PER FACET PANEL.
+
+  #THE MATH IS SLIGHTLY DIFFERENT IF WE'RE LABELING AT THE TOP/BOTTOM VS. LEFT/RIGHT.
+  if(placement %in% c("top", "bottom")) {
+
+    label_data %>%
+      dplyr::group_by(dplyr::across(dplyr::all_of(group_vars))) %>%
+      dplyr::mutate(
+        y_range = diff(range(y, na.rm = T)), #GET THE X AND Y RANGES
+        x_range = diff(range(x, na.rm = T)),
+        x_range = dplyr::if_else(x_range == 0, 1, x_range), #GUARDS AGAINST RANGELESS DIMS...?
+        y_range = dplyr::if_else(y_range == 0, 1, y_range),
+        target_x = stats::median(x, na.rm = TRUE), #GET THE MEDIAN X VALUE
+        target_y = if(placement == "top") { max(y, na.rm = T) + (adj_fact * y_range) #CHANGE THE TARGET IN THE DIRECTION INDICATED AND TO THE AMOUNT INDICATED BY ADJ_FACT...CHANGES JUST THE TARGET SPOT, NOT THE FINAL CHOICE.
+        } else if(placement == "bottom") { min(y, na.rm = T) - (adj_fact * y_range) },
+        dist_to_target = #CALCULATE ALL DISTANCES BTW. GEOM + TARGET X/Y COORDS.
+          ((x - target_x) / x_range)^2 +
+          ((y - target_y) / y_range)^2
+      ) %>%
+      dplyr::slice_min(dist_to_target, n = 1, with_ties = FALSE) %>% #SLICE TO THE CLOSEST POINT/LINE LOCATION TO THE TARGET.
+      dplyr::select(x, y, .label_plus, dplyr::any_of(group_vars)) %>% #CLIP TO JUST NECESSARY DATA.
+      dplyr::ungroup()
+
+  } else {
+
+    label_data %>%
+      dplyr::group_by(dplyr::across(dplyr::all_of(group_vars))) %>%
+      dplyr::mutate(
+        x_range = diff(range(x, na.rm = T)),
+        y_range = diff(range(y, na.rm = T)),
+        x_range = dplyr::if_else(x_range == 0, 1, x_range), #GUARDS AGAINST RANGELESS DIMS.
+        y_range = dplyr::if_else(y_range == 0, 1, y_range),
+        target_y = stats::median(y, na.rm = TRUE),
+        target_x = if(placement == "right") { max(x, na.rm = T) + (adj_fact * x_range)
+        } else if(placement == "left") { min(x, na.rm = T) - (adj_fact * x_range) },
+        dist_to_target =
+          ((x - target_x) / x_range)^2 +
+          ((y - target_y) / y_range)^2
+      ) %>%
+      dplyr::slice_min(dist_to_target, n = 1, with_ties = FALSE) %>%
+      dplyr::select(x, y, .label_plus, dplyr::any_of(group_vars)) %>%
+      dplyr::ungroup()
+  }
+}
+
+
+#' Choose direct-label anchor points for grouped line data
+#'
+#' directlabel_lines() is an internal helper used by
+#' [direct_labels_plus()] when geometry = "line". It chooses one endpoint or
+#' extreme point per group, or per group-by-facet combination, to use as the
+#' anchor location for a direct label. How the label is then drawn with respect
+#' to that chosen point is determined by [ggrepel::geom_label_repel()].
+#'
+#' For "right" placement, the helper selects the row with the largest x-value
+#' in each group. For "left", it selects the smallest x-value. For "top",
+#' it selects the largest y-value. For "bottom", it selects the smallest
+#' y-value. After this anchor row is selected, adj_fact can shift the final
+#' label anchor outward or inward along the relevant axis.
+#'
+#' @param data A data frame containing the variables to be labelled.
+#' @param x,y Unquoted column names giving the x- and y-variables.
+#' @param group Unquoted column name giving the grouping variable with which to
+#' label lines.
+#' @param placement Character string giving the preferred label placement
+#' relative to the target point for each group's line. One of "top", "right",
+#' "bottom", or "left".
+#' @param adj_fact A single numeric value giving the proportional adjustment
+#' applied to the selected label anchor. Values are interpreted relative to
+#' the group-specific x- or y-range.
+#' @param facet_vars Optional character vector of facet variable names of max
+#' length 2 (or else NULL). When supplied, anchor points are calculated
+#' separately within each group-by-facet combination.
+#'
+#' @return A tibble with one row per group or group-by-facet combination. The
+#' returned data include standardized x and y columns, .label_plus, and
+#' any grouping or faceting variables needed by ggplot2 to assign labels to
+#' panels correctly.
+#'
+#' @details
+#' This helper is intended for ordinary Cartesian line-like geometries where
+#' endpoint or extreme-value labeling is meaningful. It does not account for
+#' data generated by ggplot2 statistics, transformed scales, or coordinate
+#' transformations. For fitted lines or smooths, callers should pass the
+#' pre-computed fitted data.
+#'
+#' @keywords internal
+.directlabel_lines = function(data,
+                             x,
+                             y,
+                             group,
+                             placement,
+                             adj_fact,
+                             facet_vars) {
+
+  group_name = rlang::as_name(rlang::enquo(group))
+
+  label_data = data %>%
+    dplyr::mutate(
+      x = {{x}},
+      y = {{y}},
+      .label_plus = as.character({{group}})
+    )
+
+  group_vars = unique(c(group_name, facet_vars))
+
+  label_data %>%
+    dplyr::group_by(dplyr::across(dplyr::all_of(group_vars))) %>%
+    dplyr::mutate(
+      x_range = diff(range(x, na.rm = TRUE)),
+      y_range = diff(range(y, na.rm = TRUE)),
+      x_range = dplyr::if_else(x_range == 0, 1, x_range),
+      y_range = dplyr::if_else(y_range == 0, 1, y_range)
+    ) %>%
+    {
+      if(placement == "right") { #THE CALCS FOR TARGET LOCATIONS WITH LINES ARE SIMPLER THAN FOR POINTS.
+        dplyr::slice_max(., x, n = 1, with_ties = FALSE)
+      } else if(placement == "left") {
+        dplyr::slice_min(., x, n = 1, with_ties = FALSE)
+      } else if(placement == "top") {
+        dplyr::slice_max(., y, n = 1, with_ties = FALSE)
+      } else {
+        dplyr::slice_min(., y, n = 1, with_ties = FALSE)
+      }
+    } %>%
+    dplyr::mutate(
+      x = if(placement == "right") {
+        x + (adj_fact * x_range)
+      } else if(placement == "left") {
+        x - (adj_fact * x_range)
+      } else {
+        x #PRESERVES THIS COL IN ALL OTHER CASES.
+      },
+      y = if(placement == "top") {
+        y + (adj_fact * y_range)
+      } else if(placement == "bottom") {
+        y - (adj_fact * y_range)
+      } else {
+        y
+      }
+    ) %>%
+    dplyr::select(.label_plus, x, y, dplyr::any_of(group_vars)) %>%
+    dplyr::ungroup()
+
+}
+
+
+#' Apply replacement labels for direct labels
+#'
+#' .apply_key_labels_plus() is an internal helper used by
+#' [direct_labels_plus()] to replace default group labels with user-supplied
+#' labels.
+#'
+#' @param label_data A character vector of labels, i.e., the .label_plus
+#' column produced by directlabel_points() or directlabel_lines().
+#' @param key_labels Optional replacement labels. May be one of:
+#' \itemize{
+#' \item NULL, in which case label_data is returned unchanged;
+#' \item a function applied to label_data, such as a labelling function;
+#' \item a named vector of the form c("old_label" = "New label"); or
+#' \item an unnamed vector with one replacement label per unique group.
+#' }
+#'
+#' @return A character vector of labels with the same length as label_data.
+#'
+#' @details
+#' Named key_labels are treated as an explicit lookup table. Every unique
+#' value in label_data must appear among the names of key_labels; otherwise,
+#' the helper fails with an informative error.
+#'
+#' Unnamed key_labels are assigned to unique labels in alphanumeric order.
+#' This behavior may be surprising, so the helper emits a message recommending
+#' named labels when users want more control.
+#'
+#' @keywords internal
+.apply_key_labels_plus = function(label_data, key_labels) {
+
+  #IF NO CUSTOM LABELS, BAIL.
+  if(is.null(key_labels)) {
+    return(label_data)
+  }
+
+  #IF USER SUPPLIED A LABELLING FUNCTION, TRY TO APPLY IT.
+  if(is.function(key_labels)) {
+
+    label_data = key_labels(label_data)
+    return(label_data)
+
+  }
+
+  #OTHERWISE, IF THEY GAVE A NAMED VECTOR OF LABELS.
+  if(!is.null(names(key_labels))) {
+
+    if(any(names(key_labels) == "")) {
+      stop("All elements of named `key_labels` must have names.", call. = FALSE)
+    }
+
+
+    old_labels = sort(unique(as.character(label_data))) #SINCE WE'RE LINING UP ON NAMES ANYWAY, IT DOESN'T MATTER THAT WE SORT HERE.
+    missing_labels = setdiff(old_labels, names(key_labels))
+
+    if(length(missing_labels) > 0) {
+      stop(
+        "`key_labels` is missing replacement(s) for: ",
+        paste(missing_labels, collapse = ", "),
+        call. = FALSE
+      )
+    }
+
+    #THEN, SWAP OLD LABELS FOR NEW USING THE NAMED VECTOR AS A LOOKUP.
+    new_labels = unname(key_labels[as.character(label_data)])
+
+    label_data = ifelse(
+      is.na(new_labels),
+      as.character(label_data),
+      new_labels
+    )
+
+    return(label_data)
+
+  }
+
+  #IF IT'S NOT A NAMED VECTOR, ASSIGN THE LABELS
+
+  if(length(key_labels) != #<-BY NOT UNIQUEING HERE, WE PUNISH GIVING THE SAME LABEL TWICE UNINTENTIONALLY.
+     length(unique(label_data))) {
+    stop("`key_labels` must have one label per group. Use a named vector of the form c(\"old_name\" = \"new_name\") to ensure labels are properly assigned to groups.", call. = FALSE)
+  }
+
+  old_labels = sort(unique(label_data))
+  new_labels = key_labels
+  names(new_labels) = old_labels #TO SEARCH BY OLD AND REPLACE WITH NEW, YOU'LL USE THE OLD NAMES AS INDEXES.
+
+  message("Assigning labels to groups in alphanumeric order...Use a named vector to assign them manually.")
+
+  label_data = unname(new_labels[as.character(label_data)])
+
+  return(label_data)
+
+}
+

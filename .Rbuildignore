@@ -22,3 +22,6 @@
 ^data-raw$
 ^dev$
 ^images$
+^cran-comments\.md$
+^CRAN-SUBMISSION$
+^AGENTS.md$

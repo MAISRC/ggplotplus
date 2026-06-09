@@ -1,4 +1,4 @@
-# ggplotplus 0.5.4
+# ggplotplus 0.5.5
 
 ## Main features
 
@@ -7,9 +7,11 @@
 * `theme_plus()` for Universal Design-inspired ggplot2 defaults.
 * `gridlines_plus()` and `yaxis_title_plus()` helpers for thoughtful gridlines on continuous scales only and horizontally oriented y-axis titles, respectively.
 * `scale_continuous_plus()` for forcing labels near the endpoints of continuous scales.
+* `direct_labels_plus()` for directly labeling point and line geometries as an alternative to a legend.
 
 ## Latest features
 
+* `direct_labels_plus()` added as an experimental/trial feature.
 * Coaching messages for plots with too many requested discrete colour, fill, or shape values for easy distinguishability.
 * Coaching messages when scale titles appear to use raw column names instead of something potentially more human-readable.
 * Added a session-level option, `ggplotplus.enable_coaching`, to disable coaching messages globally.
