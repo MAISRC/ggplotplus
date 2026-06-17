@@ -252,6 +252,52 @@ test_plots$direct_labeling =
   ) +
   facet_grid(. ~ Petal.Width.binned)
 
+#21. Geom col test
+test_plots$geom_col =
+  ggplot(iris %>% dplyr::group_by(Species) %>% dplyr::summarize(mean_Sepal.Length = mean(Sepal.Length)),
+         aes(x = Species, mean_Sepal.Length, fill = Species)) +
+  geom_bar(stat = "identity") +
+  theme_plus() +
+  gridlines_plus() +
+  yaxis_title_plus() +
+  scale_continuous_plus(scale = "y", name = "Mean Sepal Length (cm)")
+
+#22. Default scale_focus_plus functionality coupled with other package tools.
+test_plots$base_focus_plus =
+  ggplot2::ggplot(diamonds, ggplot2::aes(x = clarity, fill = clarity)) +
+theme_plus(enable_coaching = F) +
+  ggplot2::geom_bar() +
+  ggplot2::labs(x = "Clarity", y = "Count", fill = "Clarity") +
+  scale_focus_plus(
+    aes = "fill",
+    group_var = diamonds$clarity,
+    focal_groups = c("SI2", "VS2", "VVS2", "IF"),
+    diff_focal = TRUE,
+    diff_nonfocal = FALSE,
+    labels = LETTERS[1:8],
+    name = "Relabel\nlegend"
+  ) +
+  gridlines_plus() +
+  yaxis_title_plus() +
+  scale_continuous_plus("y", "Rename", buffer_frac = 0.1)
+
+test_plots$focus_plus_custom =
+  ggplot2::ggplot(diamonds, ggplot2::aes(x = clarity, fill = clarity)) +
+  theme_plus(enable_coaching = F) +
+  ggplot2::geom_bar() +
+  ggplot2::labs(x = "Clarity", y = "Count", fill = "Clarity") +
+  scale_focus_plus(
+    aes = "fill",
+    group_var = diamonds$clarity,
+    focal_groups = c("SI2", "VS2", "VVS2", "IF"),
+    diff_focal = FALSE,
+    diff_nonfocal = TRUE,
+    guide = "none"
+  ) +
+  gridlines_plus() +
+  yaxis_title_plus() +
+  scale_continuous_plus("y", "Rename", buffer_frac = 0.1)
+
 # Smoke test: build all plots
 plot_build_results = lapply(names(test_plots), function(nm) {
   message("Building: ", nm)

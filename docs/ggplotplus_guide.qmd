@@ -24,7 +24,7 @@ execute:
   error: false              # Hide errors (set true if you want to show failures)
   freeze: auto              # Prevent re-running code unless it changes
 editor: visual              # Helps with editing
-version: "0.5.4"
+version: "0.5.6"
 ---
 
 ## Getting started
@@ -157,7 +157,7 @@ This graph is simple and reasonably effective—it's perfectly suitable for expl
 
 - **Legend placement**: `ggplot2`'s default legend location (in the right-hand margin) is often space-inefficient, creating needlessly large voids above/below it. Plus, it tends to be encountered by readers relatively late when placed in this location. Data visualization best practices are to either integrate a legend's information into the plotting area directly (e.g., through direct labeling of lines) or else to place the legend somewhere both more prominent and more compact.
 
-This list isn’t exhaustive, but it illustrates how even a simple `ggplot` could require many adjustments to meet accessibility, clarity, and design standards. It has been my personal experience that going from a base ggplot to a publishable one often requires several hundreds of lines of code-based adjustments! Not everyone has the time, patience, or wherewithal to do that much fiddling for every graph they make: hence, `ggplotplus`. It bundles together many of those hundreds of lines of code so that we can all just *start* much closer to where most of us would want to *finish*!
+This list isn’t exhaustive, but it illustrates how even a simple `ggplot` could require many adjustments to meet accessibility, clarity, and design standards. It has been my personal experience that going from a base ggplot to a publishable one often requires several hundreds of lines of code-based adjustments! Not everyone has the time, patience, or wherewithal to do that much fiddling for every graph they make: hence, `ggplotplus`. It bundles together many of those hundreds of lines of code so that we can all just *start* much closer to where most of `us` would want to *finish*!
 
 ## theme_plus: An Opinionated Starting Point
 
@@ -409,6 +409,10 @@ ggplot(data = iris,
 ```
 
 Here, I set size to vary as a function of a variable, so variation in point size now conveys meaning. Our point size legend (top) respects that. However, our point alpha adjustment is ignored in both legends, and the fill legend (bottom) continues to use a large, constant size.
+
+### Aside: ggplot2 defaults to mapping size to area, not radius
+
+As a quick aside, I'll note that `ggplot2`, by default, already maps point `size` to area, not radius (see [this part of the `ggplot2` book](https://ggplot2-book.org/scales-other#sec-scale-size)). This is important because, as radius increases, area increases *faster*, and humans perceive differences in point area more strongly than we perceive differences in point radius. So, it's worth applauding that this default behavior is already preventing a potential perceptional distortion.
 
 ### Detour: Mapping Visual Channels in `ggplot2` (a Review)
 
@@ -781,7 +785,7 @@ ggplot(iris,
   yaxis_title_plus() #<--DON'T NUDGE
 ```
 
-Here's how one might direct-label groups in this plot:
+Here's how one might manually direct-label groups in this plot:
 
 ```{r manual labels, message=FALSE}
 #| fig-height: 6
@@ -895,7 +899,6 @@ ggplot(Orange, aes(
 )) +
   geom_line() +
   theme_plus() +
-  gridlines_plus() +
   yaxis_title_plus() +
   scale_continuous_plus(scale = "x", name = "Age (years)") +
   scale_continuous_plus(scale = "y", name = "Circumference (cm)") +
@@ -1100,6 +1103,150 @@ ggplot(iris,
 ```
 
 Faceting is a relatively complex feature of `ggplot2`. `ggplotplus`'s features are mostly designed to work with it, but that doesn't mean some creativity and future improvements won't be involved!
+
+## (EXPERIMENTAL) Using Color to Draw Focus
+
+Many graph design guides encourage designers to ensure the message of their graphs is clear: "Here is what you should be looking for/comparing in this graph." This can sometimes be a challenge, especially when the data are messy or there's a lot of them and also some obligation to show them for transparency or comparison purposes.
+
+In these instances, color can be a useful visual channel (when used thoughtfully) to draw a reader's attention to one or more subsets of the data while retaining but visually de-emphasizing the rest, often via de-saturation (graying). While using color in this way in `ggplot2` is not overly difficult, it does require some understanding of the package's underlying systems.
+
+`scale_focus_plus()` is a wrapper of `ggplot2`'s `scale_fill/colour_manual()` functions that makes putting a graph into "focus mode" approachable. Returning to our scatterplot from earlier:
+
+```{r earlier scatter repeat, message = F}
+ggplot(iris,
+       mapping = aes(x = Petal.Length, 
+                     y = Sepal.Length)) +
+  geom_point(mapping = aes(fill = Species),
+             alpha = 0.6) +
+  theme_plus(begin_discrete = 0, 
+             end_discrete = 1) +
+  scale_continuous_plus(scale = "x",
+                        name = "Petal length (cm)", 
+                        thin.labels = TRUE) +   
+  scale_continuous_plus(scale = "y",
+                        name = "Sepal length (cm)",
+                        thin.labels = TRUE) +
+  gridlines_plus() +
+  yaxis_title_plus()
+```
+
+We could ask: What if we wanted the reader to focus on just one species here? Or perhaps the comparison between two species? `scale_focus_plus()` makes generating a version that facilitates that purpose as simple as a function call:
+
+```{r first scale_focus_plus, message = F}
+ggplot(iris,
+       mapping = aes(x = Petal.Length, 
+                     y = Sepal.Length)) +
+  geom_point(mapping = aes(fill = Species),
+             alpha = 0.6) +
+  theme_plus(begin_discrete = 0, 
+             end_discrete = 1) +
+  scale_continuous_plus(scale = "x",
+                        name = "Petal length (cm)", 
+                        thin.labels = TRUE) +   
+  scale_continuous_plus(scale = "y",
+                        name = "Sepal length (cm)",
+                        thin.labels = TRUE) +
+  gridlines_plus() +
+  yaxis_title_plus() +
+  scale_focus_plus(aes = "fill", #<--ARE WE USING COLOR OR FILL TO DRAW FOCUS?
+                   group_var = iris$Species, #THE DISCRETE VARIABLE DETERMINING THE GROUPS
+                   focal_groups = "versicolor" #THE GROUP(S) TO DRAW FOCUS TO 
+                   )
+```
+
+In this version, our eyes are immediately drawn to the `versicolor` group; bright and dark, vivid colors are especially good at drawing focus, whereas de-saturated, muted color in the middle of the luminance scale tend to "recede into the background," where they are easily ignored until when we choose to engage with them.
+
+We can pass instructions through to `ggplot2::scale_fill_manual()` here, if we'd like, such as custom legend labels and a legend title:
+
+```{r focus scale title and labels, message= F}
+ggplot(iris,
+       mapping = aes(x = Petal.Length, 
+                     y = Sepal.Length)) +
+  geom_point(mapping = aes(fill = Species),
+             alpha = 0.6) +
+  theme_plus(begin_discrete = 0, 
+             end_discrete = 1) +
+  scale_continuous_plus(scale = "x",
+                        name = "Petal length (cm)", 
+                        thin.labels = TRUE) +   
+  scale_continuous_plus(scale = "y",
+                        name = "Sepal length (cm)",
+                        thin.labels = TRUE) +
+  gridlines_plus() +
+  yaxis_title_plus() +
+  scale_focus_plus(aes = "fill", 
+                   group_var = iris$Species, 
+                   focal_groups = "versicolor",
+                   labels = c("I. setosa", "I. versicolor", "I. virginica"), #<--REPLACE LABELS
+                   name = "" #<--BLANK LEGEND TITLE.
+  )
+```
+
+`guide = "none"` would eliminate the legend entirely, which could be appropriate in graphs where a different visual channel is already communicating group differences (e.g., a bar plot where the x axis does this).
+
+By default, non-focal groups are not differentiated from each other. This is also ok in instances where another visual channel differentiates them (or when identifying distinct, non-focal groups is unnecessary). However, if you want them to be differentiated, set `diff_nonfocal` to `TRUE`:
+
+```{r diff_nonfocal true, message=F}
+ggplot(iris,
+       mapping = aes(x = Petal.Length, 
+                     y = Sepal.Length)) +
+  geom_point(mapping = aes(fill = Species),
+             alpha = 0.6) +
+  theme_plus(begin_discrete = 0, 
+             end_discrete = 1) +
+  scale_continuous_plus(scale = "x",
+                        name = "Petal length (cm)", 
+                        thin.labels = TRUE) +   
+  scale_continuous_plus(scale = "y",
+                        name = "Sepal length (cm)",
+                        thin.labels = TRUE) +
+  gridlines_plus() +
+  yaxis_title_plus() +
+  scale_focus_plus(aes = "fill", 
+                   group_var = iris$Species, 
+                   focal_groups = "versicolor",
+                   labels = c("I. setosa", "I. versicolor", "I. virginica"),
+                   name = "",
+                   diff_nonfocal = TRUE #<--USE DIFFERENT SHADES FOR THE DIFFERENT NON-FOCAL GROUPS.
+  )
+```
+
+This allows you to create "focus mode" versions of plots that would still be accessible in grayscale or for those with color-vision impairments, so long as you maintain the variance in luminance that the function strives for.
+
+You can specify multiple focal groups, and you can provide custom colors for these if you prefer:
+
+```{r mult focal groups, message = F}
+ggplot(iris,
+       mapping = aes(x = Petal.Length, 
+                     y = Sepal.Length)) +
+  geom_point(mapping = aes(fill = Species),
+             alpha = 0.6) +
+  theme_plus(begin_discrete = 0, 
+             end_discrete = 1) +
+  scale_continuous_plus(scale = "x",
+                        name = "Petal length (cm)", 
+                        thin.labels = TRUE) +   
+  scale_continuous_plus(scale = "y",
+                        name = "Sepal length (cm)",
+                        thin.labels = TRUE) +
+  gridlines_plus() +
+  yaxis_title_plus() +
+  scale_focus_plus(aes = "fill", 
+                   group_var = iris$Species, 
+                   focal_groups = c("versicolor", "virginica"), #<--MAKE THIS A VECTOR AND ADD GROUPS
+                   labels = c("I. setosa", "I. versicolor", "I. virginica"), 
+                   name = "",
+                   custom_focal = c("versicolor" = "turquoise", "virginica" = "orange") #<--A NAMED VECTOR LINKS COLORS TO VALUES.
+  )
+```
+
+### Cautions and limitations
+
+At present, `scale_focus_plus()` does not interact with the package's coaching messages system. As such, you may receive coaching messages that `scale_focus_plus()` is somehow addressing–feel free to ignore or disable these in those instances.
+
+`scale_focus_plus()` also only controls the `color` and `fill` aesthetics. However, `alpha`, `size`, `linewidth` and perhaps others could all be used in a similar way to draw focus. No variants of `scale_focus_plus()` are planned to access those other aesthetics at this time, but this can be revisited in future versions.
+
+Lastly, `scale_focus_plus()` is designed to work with discrete (categorical) data only. However, continuous data could be binned into discrete categories to make them compatible; see `?scale_focus_plus()` for details and an example.
 
 ## Color Isn't Everything! Incorporating Distinctive Shapes Into Scatterplots
 

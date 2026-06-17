@@ -32,7 +32,8 @@ ThemePlus = S7::new_class(
     applyGeomDefaults = S7::class_logical,
     theme2add = S7::class_any,
     override_legend_alphasize = S7::class_logical,
-    enable_coaching = S7::class_logical
+    enable_coaching = S7::class_logical,
+    scale_factor = S7::class_numeric #<--FOR GRIDLINES_PLUS'S BUILD OPERATIONS.
   )
 )
 

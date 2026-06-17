@@ -17,7 +17,7 @@ execute:
   message: false
 editor: visual
 date: today
-version: "0.5.5"
+version: "0.5.6"
 ---
 
 <img src="man/figures/ggplotplus_hex.png" alt="ggplotplus hex sticker" style="float: right; width: 180px;"/>
@@ -83,6 +83,62 @@ ggplot(iris,
   yaxis_title_plus() + #<--RELOCATES AND RE-ORIENTS Y AXIS TITLE.
   gridlines_plus() + #<--ADDS THOUGHTFUL GRIDLINES, IF YOU *REALLY* WANT THEM.
   labs(color = expression(italic("Iris")*" species")) #<--THIS IS BASE GGPLOT2, BUT A NICE TOUCH!
+```
+
+## Thinking differently
+
+Rather than using a legend at all, you can use `direct_labels_plus()` to label the points directly:
+
+```{r direct labelling}
+#| warning: false
+#| message: false
+ggplot(iris, 
+       mapping = aes(x = Petal.Length, 
+                     y = Sepal.Length)) +
+  geom_point(mapping = aes(color = Species)) + 
+  theme_plus() +
+  scale_continuous_plus(
+    scale = "x",
+    name = "Petal length (cm)",
+    thin.labels = TRUE) +  
+  scale_continuous_plus(
+    scale = "y", 
+    name = "Sepal length (cm)") +
+  yaxis_title_plus() + 
+  gridlines_plus() + 
+  labs(color = expression(italic("Iris")*" species")) +
+  direct_labels_plus(data = iris, #<--HELP THE FUNCTION UNDERSTAND HOW YOUR DATA WORK...
+                     x = Petal.Length,
+                     y = Sepal.Length,
+                     group = Species) + #<--AND WHAT VARIABLE DETERMINES THE GROUPS, AND THE FUNCTION DOES THE REST.
+  guides(color = "none") #<--OPTIONAL, TURN THE LEGEND OFF.
+```
+
+Another option: Call visual attention to one of the groups over all others. `scale_focus_plus()` makes doing this easy:
+
+```{r}
+#| warning: false
+#| message: false
+ggplot(iris, 
+       mapping = aes(x = Petal.Length, 
+                     y = Sepal.Length)) +
+  geom_point(mapping = aes(color = Species)) + 
+  theme_plus() +
+  scale_continuous_plus(
+    scale = "x",
+    name = "Petal length (cm)",
+    thin.labels = TRUE) +  
+  scale_continuous_plus(
+    scale = "y", 
+    name = "Sepal length (cm)") +
+  yaxis_title_plus() + 
+  gridlines_plus() + 
+  labs(color = expression(italic("Iris")*" species")) +
+  scale_focus_plus(aes = "color", 
+                   group_var = iris$Species, #<--HELP THE FUNCTION UNDERSTAND YOUR DATA.
+                   focal_groups = "versicolor",
+                   diff_nonfocal = TRUE #<--KEEP NON-FOCAL GROUPS DISTINCT.
+                  )
 ```
 
 ### Trying out some new shapes

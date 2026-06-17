@@ -42,6 +42,12 @@ Under the hood, \code{gridlines_plus()} checks layer and/or global mappings to
 see if \code{x} and/or \code{y} are continuous. It does this by inspecting the trained panel scales.
 It then turns on \strong{major} gridlines for continuous directions and explicitly
 blanks gridlines for other axes (as well as \strong{all minor} gridlines).
+One interaction exists between \code{gridlines_plus()} and \code{theme_plus()}: If using
+them in tandem, the \code{linewidth} provided to \code{gridlines_plus()} will be a
+function of the scaling factor generated according to the \code{export_width} and
+\code{export_height} inputs provided to \code{theme_plus()}. That is to say that the
+final gridline widths may be bigger or small than those specified in
+\code{gridlines_plus()} as a function of your intended output size.
 }
 \examples{
 library(ggplot2)

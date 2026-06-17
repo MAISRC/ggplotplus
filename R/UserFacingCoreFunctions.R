@@ -20,6 +20,13 @@
 #' see if `x` and/or `y` are continuous. It does this by inspecting the trained panel scales.
 #' It then turns on **major** gridlines for continuous directions and explicitly
 #' blanks gridlines for other axes (as well as **all minor** gridlines).
+
+#' One interaction exists between `gridlines_plus()` and `theme_plus()`: If using
+#' them in tandem, the `linewidth` provided to `gridlines_plus()` will be a
+#' function of the scaling factor generated according to the `export_width` and
+#' `export_height` inputs provided to `theme_plus()`. That is to say that the
+#' final gridline widths may be bigger or small than those specified in
+#' `gridlines_plus()` as a function of your intended output size.
 #'
 #' @examples
 #' library(ggplot2)
@@ -387,6 +394,15 @@ scale_continuous_plus =
 #'
 #' @return A ggplot2 theme object to add with `+`.
 #'
+#' @details
+#'
+#' One interaction exists between `gridlines_plus()` and `theme_plus()`: If using
+#' them in tandem, the `linewidth` provided to `gridlines_plus()` will be a
+#' function of the scaling factor generated according to the `export_width` and
+#' `export_height` inputs provided to `theme_plus()`. That is to say that the
+#' final gridline widths may be bigger or small than those specified in
+#' `gridlines_plus()` as a function of your intended output size.
+#'
 #' @examples
 #' # Basic use
 #' library(ggplot2)
@@ -474,7 +490,7 @@ theme_plus = function(...,
       line = ggplot2::element_line(color = line_color, linewidth = ggplot2::rel(1), lineend = "square"), #ADD THICK BLACK X AND Y AXIS LINES WITH SQUARE ENDS TO ENSURE THAT THEY APPEAR TO VISUALLY MEET.
       title = ggplot2::element_text(color = text_color, size = ggplot2::rel(1.125), face = "bold", family = "sans"),
       text = ggplot2::element_text(size = ggplot2::rel(1), color = text_color), #ENSURE AXIS LABELS ARE BLACK AND SIZE 16
-      ticks.length = ggplot2::unit(0.2, "cm"), #INCREASE SIZE OF AXIS TICK MARKS TO BE MORE NOTICEABLE.
+      ticks.length = ggplot2::unit((0.2*scale_factor), "cm"), #INCREASE SIZE OF AXIS TICK MARKS TO BE MORE NOTICEABLE.
       ticks = ggplot2::element_line(color = line_color, linewidth = ggplot2::rel(0.75)),
     ) +
     ggplot2::theme_sub_axis_x(title = ggplot2::element_text(margin = ggplot2::margin(t = 10))) +
@@ -485,7 +501,7 @@ theme_plus = function(...,
       text = ggplot2::element_text(size = ggplot2::rel(1), color = text_color),
       key = ggplot2::element_rect(fill = "transparent", color = "white"),
       background = ggplot2::element_rect(color = NA, fill = background_color),
-      ticks.length = ggplot2::unit(0.2, "cm"),
+      ticks.length = ggplot2::unit((0.2*scale_factor), "cm"),
       ticks = ggplot2::element_line(color = "white", linewidth = ggplot2::rel(0.75), linetype = "solid"), #MAKE THE TICKS WHITE
       frame = ggplot2::element_rect(color = line_color, linewidth = ggplot2::rel(1)), #MAKE SOLID BLACK LINES FOR THE LEGEND BORDER FOR CONTINUOUS SCALES.
     ) +
@@ -526,7 +542,8 @@ theme_plus = function(...,
     applyGeomDefaults = TRUE,
     theme2add = theme_plus2add,
     override_legend_alphasize = override_legend_alphasize,
-    enable_coaching = enable_coaching
+    enable_coaching = enable_coaching,
+    scale_factor = scale_factor #<--FOR ADJUSTING GRIDLINES_PLUS AS APPLICABLE.
   )
 
 }
@@ -1039,7 +1056,373 @@ direct_labels_plus = function(data,
 
 }
 
+#' Turn on a "focus mode" to highlight specific groups via color or fill
+#'
+#' `scale_focus_plus()` is a wrapper for `ggplot2`'s `scale_fill/colour_manual`
+#' functions that helps a user quickly creates a manual color or fill scale
+#' that highlights one or more focal groups while de-emphasizing all other
+#' groups (via desaturation, by default). This is useful when a graph would
+#' ideally call attention to specific groups without removing the broader
+#' context and transparency provided by the remaining groups. This reduces
+#' cognitive load by allowing non-essential information to "fall into the
+#' background" to be readily ignored, increasing the reading rate, and also
+#' helps to signpost for the reader where the "message" is within the plot.
+#'
+#' By default, focal groups are assigned visually prominent colors from the
+#' Universal-Design-oriented viridis color palette via `viridisLite::viridis()`,
+#' while non-focal groups are assigned a shared gray. Focal groups are
+#' differentiated from one another by default; non-focal groups are not. These
+#' defaults are intended to support a common graph-design pattern:
+#' show all groups, but make the intended comparison obvious.
+#'
+#' Note that the default values for `gray_start`, `gray_end`, `focal_start`, and
+#' `focal_end` intentionally map to different regions of the luminance (light
+#' to dark) scale so as to render the colors still distinguishable in grayscale
+#' by virtue of variance in luminance. This variance should be maintained for
+#' accessibility even if different inputs are provided.
+#'
+#' @param aes A character string indicating which aesthetic should receive the
+#'   focus scale. Must be one of `"color"`, `"colour"`, or `"fill"`.
+#' @param group_var A character vector or factor containing the grouping variable
+#'   mapped to `aes`. This should generally be the same vector mapped to `colour`,
+#'   `color`, or `fill` in the plot.
+#' @param focal_groups A character vector giving the group value(s) in the
+#' `group_var` to be emphasized. All values must be present in `group_var`.
+#' @param diff_nonfocal Logical. If `TRUE`, non-focal groups are assigned
+#'   different (gray/custom) color values. If `FALSE`, all non-focal groups
+#'   receive the same (gray/custom) value. Defaults to `FALSE`.
+#' @param diff_focal Logical. If `TRUE`, focal groups are assigned different
+#'   (viridis/custom) colors. If `FALSE`, all focal groups receive the same
+#'   (viridis/custom) color. Defaults to `TRUE`.
+#' @param gray_start,gray_end Numeric values between 0 and 1 controlling the
+#'   range of gray values used for non-focal groups when custom_nonfocal is not
+#'   NULL. Lower values are darker and higher values are lighter. `gray_start`
+#'   must be less than or equal to `gray_end`.
+#' @param focal_start,focal_end Numeric values between 0 and 1 controlling the
+#'   portions of the viridis palette used for focal groups when custom_focal is
+#'   not NULL. By default, `scale_focus_plus()` draws from the darker and lighter
+#'   ends of the palette while avoiding the middle, as humans are generally more
+#'   drawn to very bright and very dark colors. `focal_end` must be less than
+#'   or equal to `focal_start`.
+#' @param custom_focal Optional custom color(s) for focal group(s). When
+#'   `diff_focal = TRUE`, this must be a named character vector whose names
+#'   match the unique values in `focal_groups`. When `diff_focal = FALSE`,
+#'   this must be a character vector of length 1.
+#' @param custom_nonfocal Optional custom color(s) for non-focal group(s). When
+#'   `diff_nonfocal = TRUE`, this must be a named character vector whose names
+#'   match the non-focal values in `group_var`. When `diff_nonfocal = FALSE`,
+#'   this must be a character vector of length 1.
+#' @param ... Additional arguments passed to
+#'   [ggplot2::scale_colour_manual()] or [ggplot2::scale_fill_manual()]. Do not
+#'   supply `values`; `scale_focus_plus()` constructs the `values` argument
+#'   internally. All other arguements should be accessible, including `labels`
+#'   and `name`. Use these to relabel and retitle the created scale.
+#'
+#' @details
+#' `scale_focus_plus()` is a convenience wrapper around
+#' [ggplot2::scale_colour_manual()] and [ggplot2::scale_fill_manual()]. It does
+#' not alter the data or add any geoms. Instead, it constructs a named vector of
+#' colors from `group_var` and `focal_groups`, then passes that vector to the
+#' appropriate ggplot2 manual color/fill scale.
+#'
+#' This function is most useful when the focal/non-focal distinction is the
+#' primary visual message, and all non-focal groups may be secondary. When
+#' individual non-focal groups must remain distinguishable, set
+#' `diff_nonfocal = TRUE` or provide `custom_nonfocal`.
+#'
+#' Although `scale_focus_plus()` is designed for discrete data, it can also be
+#' used when the data requiring (de-)emphasis is continuous. In those cases,
+#' first create a discrete grouping variable in the data, then map that variable
+#' to `colour` or `fill`. For example, a continuous measurement could be
+#' converted to groups such as `"High cover"` and `"Other"` before calling
+#' `scale_focus_plus()`. See the examples section for an example.
+#'
+#' @return A ggplot2 scale object.
+#'
+#' @examples
+#' lake_dat = data.frame(
+#'   year = rep(2012:2020, times = 5),
+#'   lake = rep(paste("Lake", LETTERS[1:5]), each = 9),
+#'   cpue = c(
+#'     10, 12, 13, 14, 16, 18, 19, 21, 23,
+#'     18, 17, 16, 16, 15, 14, 13, 13, 12,
+#'     8, 9, 11, 13, 16, 20, 24, 27, 30,
+#'     22, 21, 21, 20, 19, 18, 18, 17, 17,
+#'     12, 13, 13, 15, 15, 16, 17, 18, 20
+#'   )
+#' )
+#'
+#' ggplot2::ggplot(
+#'   lake_dat,
+#'   ggplot2::aes(x = year,
+#'                y = cpue,
+#'                colour = lake,
+#'                group = lake)
+#' ) +
+#'   ggplot2::geom_line(linewidth = 1) +
+#'   ggplot2::geom_point(size = 2) +
+#'   scale_focus_plus(aes = "colour",
+#'              group_var = lake_dat$lake,
+#'              focal_groups = c("Lake A", "Lake C"))
+#'
+#' # One can use a shared focal color and a custom non-focal gray.
+#' ggplot2::ggplot(
+#'   lake_dat,
+#'   ggplot2::aes(x = year,
+#'                y = cpue,
+#'                colour = lake,
+#'                group = lake)
+#' ) +
+#'   ggplot2::geom_line(linewidth = 1) +
+#'   scale_focus_plus(aes = "colour",
+#'              group_var = lake_dat$lake,
+#'              focal_groups = c("Lake A", "Lake C"),
+#'              diff_focal = FALSE,
+#'              custom_focal = "#440154",
+#'              custom_nonfocal = "gray70")
+#'
+#' cover_dat = data.frame(
+#'   taxon = c("Native plants",
+#'             "Starry stonewort",
+#'             "Eurasian watermilfoil",
+#'             "Curly-leaf pondweed"),
+#'   mean_cover = c(62, 28, 18, 11)
+#' )
+#'
+#' ggplot2::ggplot(
+#'   cover_dat,
+#'   ggplot2::aes(x = taxon,
+#'                y = mean_cover,
+#'                fill = taxon)
+#' ) +
+#'   ggplot2::geom_col() +
+#'   scale_focus_plus(aes = "fill",
+#'              group_var = cover_dat$taxon,
+#'              focal_groups = "Starry stonewort") +
+#'   ggplot2::labs(x = NULL,
+#'                 y = "Mean percent cover")
+#'
+#' # Focal groups can also be created from continuous variables. Here's how:
+# site_dat = data.frame(
+#   site = paste("Site", 1:12),
+#   mean_cover = c(4, 8, 12, 15, 18, 24, 31, 38, 45, 52, 67, 73)
+# )
+#
+# site_dat$cover_group = ifelse(site_dat$mean_cover >= 50,
+#                              "High cover",
+#                              "Other")
+#
+# ggplot2::ggplot(
+#   site_dat,
+#   ggplot2::aes(x = site,
+#                y = mean_cover,
+#                fill = cover_group)
+# ) +
+#   ggplot2::geom_col() +
+#   scale_focus_plus(aes = "fill",
+#                    group_var = site_dat$cover_group,
+#                    focal_groups = "High cover",
+#                    diff_focal = FALSE,
+#                    custom_focal = "#440154",
+#                    custom_nonfocal = "gray75") +
+#   ggplot2::labs(x = NULL,
+#                 y = "Mean percent cover",
+#                 fill = NULL)
+#' @export
+scale_focus_plus = function(aes,
+                            group_var,
+                            focal_groups,
+                            diff_nonfocal = FALSE, #<--USE DIFFERENT SHADES FOR GROUPS WITHIN THE FOCAL OR NON-FOCAL GROUPS?
+                            diff_focal = TRUE,
+                            gray_start = 0.35, #<--ADJUST EXACT COLORS USED.
+                            gray_end = 0.65,
+                            focal_start = 0.75,
+                            focal_end = 0.25,
+                            custom_focal = NULL,
+                            custom_nonfocal = NULL,
+                            ...) { #<--PASS THRU TO SCALE_*_MANUAL()
 
+  ##FAIL EARLYS
+  aes = match.arg(aes, c("color", "colour", "fill"))
+
+  if(all(!is.character(group_var),
+         !is.factor(group_var)) ||
+     length(unique(group_var)) <= 1) {
+    stop("Invalid `group_var`: Must be a character or factor with more than one level.")
+  }
+
+  if(!is.character(focal_groups) ||
+     length(unique(focal_groups)) == 0) {
+    stop("Invalid `focal_groups`: Must be a character of length >= 1.")
+  }
+
+  if(!is.logical(diff_nonfocal) || length(diff_nonfocal) != 1 || is.na(diff_nonfocal) ||
+     !is.logical(diff_focal) || length(diff_focal) != 1 || is.na(diff_focal)) {
+    stop("Both `diff_nonfocal` and `diff_focal` must be length-1 logicals.")
+  }
+
+  if(any(is.na(group_var))) {
+    stop("Invalid `group_var`: Missing values are not currently supported.")
+  }
+
+  if(any(is.na(focal_groups))) {
+    stop("Invalid `focal_groups`: Missing values are not allowed.")
+  }
+
+  if(gray_start > gray_end) {
+    stop("`gray_start` must be less than or equal to `gray_end`.")
+  }
+
+  if(focal_end > focal_start) {
+    stop("`focal_end` must be less than or equal to `focal_start`.")
+  }
+
+  if(!is.numeric(gray_start) || !is.numeric(gray_end) ||
+     !is.numeric(focal_start) || !is.numeric(focal_end) ||
+     length(gray_start) != 1 || length(gray_end) != 1 ||
+     length(focal_start) != 1 || length(focal_end) != 1 ) {
+    stop("`focal_start`, `focal_end`, `gray_start`, and `gray_end` must all be length-1 numeric values between 0 and 1 (inclusive).")
+  }
+
+  if(!.is_between(gray_start, range = c(0,1)) ||
+     !.is_between(gray_end, range = c(0,1)) ||
+     !.is_between(focal_start, range = c(0,1)) ||
+     !.is_between(focal_end,  range = c(0,1))) {
+    stop("`focal_start`, `focal_end`, `gray_start`, and `gray_end` must all be length-1 numeric values between 0 and 1 (inclusive).")
+  }
+
+  dot.args = list(...) #NO NEED YET TO PRACTICE ANY PARTIAL ARGUMENT MATCHING OR ARGUMENT COLLISIONS BECAUSE I'M NOT PASSING ANY DEFAULTS.
+
+  any_values = .partial_match_user_arg(dot.args, "values")
+
+  if(length(any_values) >= 1) {
+    dot.args = .remove_partial_match_user_arg(dot.args, "values")
+    warning("Don't provide a `values` argument to `scale_focus_plus`. Use `focal_start`, `focal_end`, `gray_start`, and `gray_end` to control colors.")
+  }
+
+  ##CONVENIENCE OBJS, TIDYING, AND SECONDARY FAIL STATES.
+
+  allGroups = unique(group_var)
+  allFocal = unique(focal_groups)
+  allNonfocal = setdiff(allGroups, allFocal)
+  numFocalGroups = length(allFocal)
+  numNonFocal = length(allGroups) - numFocalGroups
+
+
+  if(any(!focal_groups %in% allGroups)) {
+    stop("All values in `focal_groups` must be present within the levels of `group_var`.")
+  }
+
+  if(numNonFocal < 1) {
+    stop("There are not enough unique levels in `group_var` for a 'focus mode' to make sense given your input to `focal_groups`.")
+  }
+
+  if(!is.null(custom_focal)) {
+
+    bad_custom_focal =
+      !is.character(custom_focal) ||
+      if(diff_focal) {
+        !rlang::is_named(custom_focal) ||
+          !identical(sort(names(custom_focal)), sort(allFocal))
+      } else {
+        length(custom_focal) != 1
+      }
+
+    if(bad_custom_focal) {
+      stop(
+        "Invalid `custom_focal` argument: It must be a named character vector equal in name and number to the unique, differentiated groups in `focal_groups` when `diff_focal = TRUE`, or a character vector of length 1 when `diff_focal = FALSE`.",
+        call. = FALSE
+      )
+    }
+  }
+
+  if(!is.null(custom_nonfocal)) {
+
+    bad_custom_nonfocal =
+      !is.character(custom_nonfocal) ||
+      if(diff_nonfocal) {
+        !rlang::is_named(custom_nonfocal) ||
+          !identical(sort(names(custom_nonfocal)), sort(allNonfocal))
+      } else {
+        length(custom_nonfocal) != 1
+      }
+
+    if(bad_custom_nonfocal) {
+      stop(
+        "Invalid `custom_nonfocal` argument: It must be a named character vector equal in name and number to the unique, differentiated, non-focal groups in `group_var` when `diff_nonfocal = TRUE`, or a character vector of length 1 when `diff_nonfocal = FALSE`.",
+        call. = FALSE
+      )
+    }
+  }
+
+  ##HAPPY PATH--CHOOSE COLORS ACCORDING TO INPUTS
+
+  if(is.null(custom_nonfocal)) {
+
+    #CHOOSE GRAYS--DEFAULTS TO SMALL VARIANCE IN THE MIDDLE GRAY RANGE.
+    if(isTRUE(diff_nonfocal)) {
+      nonfocal_cols = grDevices::gray.colors(numNonFocal, start = gray_start, end = gray_end)
+    } else {
+      gray_val = mean(c(gray_start, gray_end), na.rm = T)
+      nonfocal_cols = grDevices::gray.colors(numNonFocal, start = gray_val,
+                                             end = gray_val)
+    }
+
+  } else {
+
+    if(isTRUE(diff_nonfocal)) {
+      nonfocal_cols = custom_nonfocal[as.character(allNonfocal)]
+    } else {
+      nonfocal_cols = rep(custom_nonfocal[[1]], length.out = numNonFocal)
+    }
+
+  }
+
+  if(is.null(custom_focal)) {
+
+    #CHOOSE VIRIDIS VALS--DEFAULTS TO LARGE VARIANCE IN LIGHT/DARK RANGES.
+    n_focal_each = 64
+
+    viridisCensored = c(
+      viridisLite::viridis(n = n_focal_each, begin = focal_start, end = 1),
+      viridisLite::viridis(n = n_focal_each, begin = 0, end = focal_end)
+    )
+
+    if(isTRUE(diff_focal)) {
+      focal_cols = viridisCensored[seq(from = 1,
+                                       to = length(viridisCensored),
+                                       length.out = numFocalGroups)]
+    } else {
+      focal_cols = rep(viridisCensored[1], times = numFocalGroups)
+    }
+
+  } else {
+
+    if(isTRUE(diff_focal)) {
+      focal_cols = custom_focal[as.character(allFocal)]
+    } else {
+      focal_cols = rep(custom_focal[[1]], length.out = numFocalGroups)
+    }
+
+  }
+
+  all_cols = c(nonfocal_cols, focal_cols)
+  names(all_cols) = c(as.character(allNonfocal),
+                      as.character(allFocal))
+
+
+  if(aes == "color") { aes = "colour" }
+
+  scale2call = paste0("scale_", aes, "_manual")
+
+  do.call(scale2call, args = c(list(
+    values = all_cols
+  ),
+  dot.args
+  ))
+
+
+}
 
 #' Demo plot showing geom_point_plus() shapes
 #'

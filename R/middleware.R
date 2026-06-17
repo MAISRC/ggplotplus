@@ -1,6 +1,6 @@
 # IMPORT COMMANDS ---------------------------------------------------------
 
-#' @importFrom rlang %||% list2 .data
+#' @importFrom rlang %||% list2 .data is_named
 #' @import ggplot2
 #' @importFrom ggplot2 update_ggplot class_ggplot ggplot_build ggplot_gtable
 #' @importFrom polyclip polyclip
@@ -9,6 +9,7 @@
 #' @importFrom dplyr %>% slice_max mutate group_by across all_of if_else slice_min select any_of ungroup
 #' @importFrom stats median
 #' @importFrom utils globalVariables
+#' @importFrom grDevices gray.colors
 NULL
 
 ##THIS HELPS THE R CMD CHECKER KNOW THESE "VARIABLES" ARE MADE DURING DPLYR CHAINS AND ARE THUS BOUND BY DPLYR'S EVALUATION SCHEME AND SHOULDN'T BE VIEWED AS GLOBAL VARIABLES.
@@ -1575,3 +1576,110 @@ geom_plus_defaults = list(
 
 }
 
+
+#' Check whether a value falls inside a range
+#'
+#' Internal helper used by coaching checks to determine whether a target value
+#' falls within a numeric range. The input range is sorted before comparison, so
+#' the function is insensitive to whether the range is supplied as low-high or
+#' high-low.
+#'
+#' @param range A numeric vector of length 2 giving the range to check.
+#' @param val A numeric value to test against range.
+#' @param inclusive Logical. If TRUE, values equal to either range endpoint are
+#' treated as inside the range. If FALSE, values must fall strictly between
+#' the endpoints.
+#'
+#' @return A single logical value.
+#'
+#' @keywords internal
+.is_between = function(range, val, inclusive = TRUE) {
+
+  range = sort(range)
+
+  if(isTRUE(inclusive)) {
+  return(val >= range[1] && val <= range[2])
+  } else {
+    return(val > range[1] && val < range[2])
+  }
+
+}
+
+
+#' Check whether a built plot contains a bar-like geom
+#'
+#' Internal helper used by coaching checks to determine whether any layer in a
+#' built plot uses GeomBar. This catches both geom_bar() and geom_col(),
+#' since geom_col() uses the same underlying geom with a different stat.
+#'
+#' @param built A built ggplot object, typically produced by
+#' ggplot2::ggplot_build().
+#'
+#' @return A single logical value.
+#'
+#' @keywords internal
+.has_any_barCol_geom = function(built) {
+  return(any(vapply(built@plot@layers, function(x) {
+    inherits(x$geom, "GeomBar")
+  }, logical(1))))
+}
+
+#' Get visible panel ranges for an axis
+#'
+#' Internal helper used by coaching checks to retrieve the visible coordinate
+#' range for each panel along a requested axis. This differs from the trained
+#' scale range: for example, coord_cartesian() may crop the visible panel range
+#' without dropping data from the scale.
+#'
+#' This helper relies on ggplot2's built-plot internals and should therefore be
+#' treated as best-effort/version-sensitive.
+#'
+#' @param built A built ggplot object, typically produced by
+#' ggplot2::ggplot_build().
+#' @param axis A character string giving the axis to inspect. Expected values are
+#' "x" or "y".
+#'
+#' @return A list of numeric vectors, one per panel. Each vector gives the
+#' visible range for the requested axis.
+#'
+#' @keywords internal
+.get_visible_panel_ranges = function(built, axis) {
+
+  range_name = paste0(axis, ".range")
+
+  ranges = lapply(
+    built@layout$panel_params,
+    function(panel) panel[[range_name]]
+  )
+
+  return(ranges)
+
+}
+
+#' Check whether an axis uses a log10 scale transformation
+#'
+#' Internal helper used by bar/column coaching checks. Ordinary bars encode
+#' values from a baseline of 0, but ggplot2 places the bar baseline at 1 on
+#' log-scaled axes. This helper detects the log10 case so the coaching check can
+#' test for visibility of the appropriate baseline.
+#'
+#' The transformation is checked from the first panel because transformations are
+#' scale-level properties rather than panel-specific properties. This helper
+#' relies on ggplot2's built-plot internals and should therefore be treated as
+#' best-effort/version-sensitive.
+#'
+#' @param built A built ggplot object, typically produced by
+#' ggplot2::ggplot_build().
+#' @param axis A character string giving the axis to inspect. Expected values are
+#' "x" or "y".
+#'
+#' @return A single logical value.
+#'
+#' @keywords internal
+.is_log10_transformed_scale = function(built, axis) {
+
+  trans_name = built@layout$panel_params[[1]][[axis]]$get_transformation()$name
+
+  return(identical(trans_name, "log-10"))
+
+}

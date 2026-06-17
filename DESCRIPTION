@@ -1,6 +1,6 @@
 Package: ggplotplus
 Title: Universal Design-Oriented Enhancements for 'ggplot2'
-Version: 0.5.5
+Version: 0.5.6
 Authors@R: 
     person("Alex", "Bajcz", email = "bajcz003@umn.edu", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-5909-4676"))
 BugReports: https://github.com/MAISRC/ggplotplus/issues
@@ -23,7 +23,8 @@ Imports:
     polyclip,
     ggrepel (>= 0.9.0),
     dplyr,
-    stats
+    stats,
+    grDevices
 Suggests: 
     testthat (>= 3.0.0),
     ragg (>= 1.5.2),

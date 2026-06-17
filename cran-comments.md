@@ -1,12 +1,8 @@
-## **Re-submission**
+## **Update**
 
-This is a re-submission. I have fixed the following issue identified in my last submission:
+This is an update of an existing package. 
 
-- Added a `\value` tag for `geom_point_plus_shapes()`.
-
-I also took the opportunity to add one new exported function, `direct_labels_plus()`, along with its documentation, as I was able to graduate it out of experimental status since the last submission. The version number has been incremented to 0.5.5 to reflect this.
-
-A small number of other minor bug fixes were made as well. The most notable was the removal of the `key_size` parameter from `geom_point_plus()`, which proved redundant and problematic. I recognize that deprecation is the preferred path for parameter removal and intend to follow that practice going forward; as this is effectively a first public release, I hope the direct removal is acceptable here.
+Since the last version, I have added one new exported function, `scale_focus_plus()`, along with its documentation, as I was able to graduate it out of experimental status since the last submission. The version number has been incremented to 0.5.6 to reflect this.
 
 ## Test environments
 
@@ -23,8 +19,8 @@ A small number of other minor bug fixes were made as well. The most notable was 
 ## R CMD check results
 
 ```         
-── R CMD check results ───────────────────────── ggplotplus 0.5.5 ────
-Duration: 49s
+── R CMD check results ─────────────────────────────────────────────── ggplotplus 0.5.6 ────
+Duration: 48.4s
 
 0 errors ✔ | 0 warnings ✔ | 0 notes ✔
 ```

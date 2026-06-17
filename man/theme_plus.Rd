@@ -82,6 +82,13 @@ Internally, text sizes are expressed with \code{rel()}, so they scale with
 The function builds
 a  base theme, then \emph{adds} any user overrides via
 \code{theme(...)}, so the user's preferences always take precedence.
+
+One interaction exists between \code{gridlines_plus()} and \code{theme_plus()}: If using
+them in tandem, the \code{linewidth} provided to \code{gridlines_plus()} will be a
+function of the scaling factor generated according to the \code{export_width} and
+\code{export_height} inputs provided to \code{theme_plus()}. That is to say that the
+final gridline widths may be bigger or small than those specified in
+\code{gridlines_plus()} as a function of your intended output size.
 }
 \examples{
 # Basic use

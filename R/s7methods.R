@@ -101,6 +101,7 @@ S7::method(update_ggplot,
 
              plot@ggplotplus@theme = object
 
+             ##MANAGE LEGEND KEY OVERRIDE AND COACHING OVERRIDE
              if(is.null(plot@ggplotplus@general_intents$override_legend_alphasize) || plot@ggplotplus@general_intents$override_legend_alphasize) { #THIS ENSURES ANY FALSE PERPETUATES.
                plot@ggplotplus@general_intents$override_legend_alphasize = object@override_legend_alphasize
              }
@@ -131,7 +132,9 @@ S7::method(update_ggplot,
 S7::method(ggplot_build, GGPlotPlusPlot) <- function(plot, ...) {
 
 
-  ###ALPHA/SIZE LEGEND OVERRIDES OPERATIONS
+
+## ALPHA/SIZE LEGEND OVERRIDES OPERATIONS -----------------------------
+
   #INTENT: WHEN A USER HAS A LEGEND FOR SHAPE, FILL, AND/OR COLOR, AND THEY SET SIZE AND/OR ALPHA TO SMALL VALUES, THESE SMALL VALUES ALSO APPLY *UNNECESSARILY* TO THE KEYS IN THE LEGEND, MAKING THEM HARDER TO READ.
   #HERE, WE DETERMINE IF SUCH ANY OF THE FORMER SCALES HAVE BEEN MAPPED AND OVERRIDE THE DEFAULT AES FOR THE LEGEND KEYS FOR THOSE SCALES FOR ALL AESTHETICS WITHIN C("ALPHA", "SIZE") THAT HAVEN'T ALSO BEEN MAPPED, UNLESS THE USER HAS REQUESTED WE DON'T.
 
@@ -229,7 +232,8 @@ S7::method(ggplot_build, GGPlotPlusPlot) <- function(plot, ...) {
   }#/END OVERRIDING LEGEND DEFAULTS FOR SIZE/ALPHA
 
 
-   ###THEME PLUS GEOM DEFAULTS OPERATIONS
+##    THEME PLUS GEOM DEFAULTS OPERATIONS -------------------------------
+
   if(.s7_prop_is_true(plot@ggplotplus@theme, "applyGeomDefaults")) {
 
     plotLayers = plot$layers #ID ALL LAYERS (GEOM) IN THIS PLOT...
@@ -299,9 +303,15 @@ S7::method(ggplot_build, GGPlotPlusPlot) <- function(plot, ...) {
     plain_plot = S7::convert(plot, ggplot2::class_ggplot) #CONVERT TO REGULAR OLD class_ggplot TO BUILD GENERICALLY.
     built = ggplot2::ggplot_build(plain_plot, ...)
 
-    ###GRIDLINES PLUS OPERATIONS
+##     GRIDLINES PLUS OPERATIONS ----------------------------------------
+
     grid_intents = plot@ggplotplus@grid # CONVENIENCE OBJ
     if(!is.null(grid_intents)) {
+
+      #IF USING THEME_PLUS IN TANDEM, ADJUST THE LINEWIDTHS ACCORDING TO THE PROPAGATED SCALE_FACTOR.
+      if(!is.null(plot@ggplotplus@theme)) {
+        grid_intents@linewidth = grid_intents@linewidth * plot@ggplotplus@theme@scale_factor
+      }
 
       grid_theme = .apply_gridlines_plus(built, grid_intents) #<--GO SEE MIDDLEWARE.R FOR THIS HELPER.
 
@@ -315,7 +325,8 @@ S7::method(ggplot_build, GGPlotPlusPlot) <- function(plot, ...) {
 
     if(should_we_coach) {
 
-    ###GUIDING MESSAGES CONCERNING OVER-RELIANCE ON DISCRETE SHAPES/COLORS
+##     GUIDING MESSAGES CONCERNING OVER-RELIANCE ON DISCRETE SHAPE AND COLOR --------
+
     #***I THINK THIS WORKS, BUT IT LOOKS LIKE USING ggplot2::get_guide_data() COULD MAYBE HAVE BEEN EASIER.
     plot_scales = built@plot@scales$scales
     discrete_plus_FCS = Filter(function(x) { inherits(x, "ScaleDiscrete") &&
@@ -329,17 +340,18 @@ S7::method(ggplot_build, GGPlotPlusPlot) <- function(plot, ...) {
         if(any(c("fill", "colour") %in% discrete_plus_FCS[[i]]$aesthetics) &&
            uniqVals > 7 &&
            warned_colour_fill == FALSE) {
-          message("\nNote: You've mapped color and/or fill to a discrete variable with > 7 levels. This is not recommended. Even when using a color palette designed for maximum contrast and discernability (such as viridis), most humans are not able to readily distinguish all colors from one another in any palette beyond about 7 colors. Consider using a different visual channel, filtering or consolidating to a smaller number of levels, or layering on a second visual channel (such as shape or line type). Alternatively, consider shuffling the color values to make dissimilar colors appear nearer to one another to facilitate comparisons. Set enable_coaching to FALSE to disable these messages.")
+          message("\nNote: You've mapped color and/or fill to a discrete variable with > 7 levels. Even when using a color palette designed for maximum contrast and discernability (such as viridis), most humans are not able to readily distinguish all colors from one another in any palette beyond about 7 colors. Consider using a different visual channel, filtering or consolidating to a smaller number of levels, or layering on a second visual channel (such as shape or line type). Alternatively, consider shuffling the color values to make dissimilar colors appear nearer to one another to facilitate comparisons. Also, consider using scale_focus_plus() or direct_labels_plus() in these circumstances. Set enable_coaching to FALSE to disable these messages.")
           warned_colour_fill = TRUE
         }
         if("shape" %in% discrete_plus_FCS[[i]]$aesthetics &&
            uniqVals > 9) {
-          message("\nNote: You've mapped shape to a discrete variable with > 9 levels. This is not recommended. Even when using a shape palette designed for maximum contrast and discernability (such as that available via geom_point_plus()), most humans are not able to readily distinguish all shapes from one another in any palette beyond about 9 shapes. Consider using a different visual channel, filtering or consolidating to a smaller number of levels, or layering on a second visual channel (such as color or angle of orientation). Alternatively, consider shuffling the shape values to make dissimilar shapes appear nearer to one another to facilitate comparisons. Set enable_coaching to FALSE to disable these messages.")
+          message("\nNote: You've mapped shape to a discrete variable with > 9 levels. Even when using a shape palette designed for maximum contrast and discernability (such as that available via geom_point_plus()), most humans are not able to readily distinguish all shapes from one another in any palette beyond about 9 shapes. Consider using a different visual channel, filtering or consolidating to a smaller number of levels, or layering on a second visual channel (such as color or angle of orientation). Alternatively, consider shuffling the shape values to make dissimilar shapes appear nearer to one another to facilitate comparisons. Also, consider using scale_focus_plus() or direct_labels_plus() in these circumstances. Set enable_coaching to FALSE to disable these messages.")
         }
       }
     }
 
-    ###GUIDING MESSAGES AROUND RENAMING SCALES TO BE MORE INFORMATIVE
+##     GUIDING MESSAGES AROUND RENAMING SCALES TO BE MORE INFORMATIVE --------
+
     plot_labs = ggplot2::get_labs(built)
     plot_labs = plot_labs[vapply(plot_labs, is.character, logical(1))]
     plot_labs = unlist(plot_labs, use.names = TRUE)
@@ -363,6 +375,39 @@ S7::method(ggplot_build, GGPlotPlusPlot) <- function(plot, ...) {
         "\nNote: For your %s scale(s), you didn't apparently set a title different than the name of the column mapped to that scale. This is not generally recommended. Column names tend to be machine- rather than human-readable, lack typical spacing, capitalization, and punctuation usage, and they tend to lack units. Consider using ggplot2::labs() to provide these scales with new, human-readable and informative titles. Set enable_coaching to FALSE to disable these messages.",
         combined
       ))
+    }
+
+##     GUIDING MESSAGES AROUND BAR/COL GRAPHS CONTAINING 0 --------
+
+    #GIST: CHECK IF BAR/COL GEOM, THEN CHECK WHICH AXIS IS CONTINUOUS. IF ONLY 1, GET VISIBLE RANGE, THEN DETERMINE IF LOG-10 TRANSFORMED. COMPARE VISIBLE RANGE TO TARGET VAL AND FLAG IF TARGET VAL NOT W/IN RANGE.
+    barCol_check = .has_any_barCol_geom(built)
+
+    if(barCol_check) {
+
+      x_is_cont = .aes_mapped_var_is_continuous(built@plot, "x")
+      y_is_cont = .aes_mapped_var_is_continuous(built@plot, "y")
+
+      if(sum(x_is_cont, y_is_cont) == 1) {
+
+        cont_axis = if(x_is_cont) "x" else "y"
+
+        visible_ranges = .get_visible_panel_ranges(built, cont_axis)
+
+        target = 0
+        if(.is_log10_transformed_scale(built, cont_axis)) {
+          target = 1
+          visible_ranges = lapply(visible_ranges, function(x) 10^x)
+        }
+
+       target_in = vapply(visible_ranges, function(x) { .is_between(x, target) }, logical(1))
+
+       if(any(!target_in)) {
+
+         message("In your bar/column chart, at least one visible continuous panel scale doesn't show 0 (or 1, if log10-transformed). Often, omitting 0 distorts a small effect size into appearing larger. This is probably a result of setting limits inside of `ggplot2::coord_cartesian()`. Set enable_coaching to FALSE to disable these messages.")
+
+       }
+
+      }
     }
 
     } #/END COACHING SECTION
