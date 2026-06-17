@@ -29,7 +29,7 @@ version: "0.5.6"
 
 ## Getting started
 
-To use the `ggplotplus` package, you’ll need to first install it from GitHub using the `pak` package (you only need to do this once for each release of the package):
+To use the latest version of `ggplotplus`, you’ll need to install it from GitHub using the `pak` package (you only need to do this once for each release of the package):
 
 ```{r load package, message=FALSE, eval = FALSE}
 # install.packages("pak")  #IF NOT ALREADY INSTALLED
@@ -42,7 +42,13 @@ library(ggplot2)
 devtools::load_all()
 ```
 
-Then, load it alongside `ggplot2`:
+Alternatively, you can get the most recent stable version from CRAN via `install.packages()`:
+
+```{r install package, message=FALSE, eval = FALSE}
+install.packages("ggplotplus")
+```
+
+Then, either way, load it alongside `ggplot2`:
 
 ```{r load libraries, eval = F}
 # install.packages("ggplot2")  #IF NOT ALREADY INSTALLED

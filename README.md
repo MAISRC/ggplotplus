@@ -1,7 +1,7 @@
 # README
 Dr. Alex Bajcz, Quantitative Ecologist, Minnesota Aquatic Invasive
 Species Research Center
-2026-06-09
+2026-06-17
 
 <img src="man/figures/ggplotplus_hex.png" alt="ggplotplus hex sticker" style="float: right; width: 180px;"/>
 
@@ -9,15 +9,21 @@ Species Research Center
 
 ## Quick Start Guide
 
-To begin using the `ggplotplus` package, you’ll first need to install it
-from GitHub using the pak package:
+To begin using the `ggplotplus` package, first install the latest,
+development version from GitHub using the pak package:
 
 ``` r
 # install.packages("devtools")  #IF NOT ALREADY INSTALLED
 pak::pak("MAISRC/ggplotplus")
 ```
 
-Then, load it alongside `ggplot2`:
+Or, alternatively, install the latest stable version from CRAN:
+
+``` r
+install.packages("ggplotplus")
+```
+
+Then, either way, load it alongside `ggplot2`:
 
 ``` r
 # install.packages("ggplot2")  #IF NOT ALREADY INSTALLED
@@ -70,6 +76,64 @@ ggplot(iris,
 ```
 
 ![](README_files/figure-commonmark/even%20more%20tools-1.png)
+
+## Thinking differently
+
+Rather than using a legend at all, you can use `direct_labels_plus()` to
+label the points directly:
+
+``` r
+ggplot(iris, 
+       mapping = aes(x = Petal.Length, 
+                     y = Sepal.Length)) +
+  geom_point(mapping = aes(color = Species)) + 
+  theme_plus() +
+  scale_continuous_plus(
+    scale = "x",
+    name = "Petal length (cm)",
+    thin.labels = TRUE) +  
+  scale_continuous_plus(
+    scale = "y", 
+    name = "Sepal length (cm)") +
+  yaxis_title_plus() + 
+  gridlines_plus() + 
+  labs(color = expression(italic("Iris")*" species")) +
+  direct_labels_plus(data = iris, #<--HELP THE FUNCTION UNDERSTAND HOW YOUR DATA WORK...
+                     x = Petal.Length,
+                     y = Sepal.Length,
+                     group = Species) + #<--AND WHAT VARIABLE DETERMINES THE GROUPS, AND THE FUNCTION DOES THE REST.
+  guides(color = "none") #<--OPTIONAL, TURN THE LEGEND OFF.
+```
+
+![](README_files/figure-commonmark/direct%20labelling-1.png)
+
+Another option: Call visual attention to one of the groups over all
+others. `scale_focus_plus()` makes doing this easy:
+
+``` r
+ggplot(iris, 
+       mapping = aes(x = Petal.Length, 
+                     y = Sepal.Length)) +
+  geom_point(mapping = aes(color = Species)) + 
+  theme_plus() +
+  scale_continuous_plus(
+    scale = "x",
+    name = "Petal length (cm)",
+    thin.labels = TRUE) +  
+  scale_continuous_plus(
+    scale = "y", 
+    name = "Sepal length (cm)") +
+  yaxis_title_plus() + 
+  gridlines_plus() + 
+  labs(color = expression(italic("Iris")*" species")) +
+  scale_focus_plus(aes = "color", 
+                   group_var = iris$Species, #<--HELP THE FUNCTION UNDERSTAND YOUR DATA.
+                   focal_groups = "versicolor",
+                   diff_nonfocal = TRUE #<--KEEP NON-FOCAL GROUPS DISTINCT.
+                  )
+```
+
+![](README_files/figure-commonmark/unnamed-chunk-1-1.png)
 
 ### Trying out some new shapes
 
