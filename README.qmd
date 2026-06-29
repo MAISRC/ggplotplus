@@ -1,5 +1,4 @@
 ---
-author: "Dr. Alex Bajcz, Quantitative Ecologist, Minnesota Aquatic Invasive Species Research Center (MAISRC)"
 format: 
   html: 
     output-file: "README.html"
@@ -16,16 +15,12 @@ format:
 execute: 
   message: false
 editor: visual
-date: today
-version: "0.5.6"
 ---
 
-<img src="man/figures/ggplotplus_hex.png" alt="ggplotplus hex sticker" style="float: right; width: 180px;"/>
-
-# *ggplotplus* -- Universal Design additions for *ggplot2*
+# *ggplotplus* — Universal Design additions for *ggplot2* <img src="man/figures/ggplotplus_hex.png" align="right" height="139" alt="ggplotplus logo"/>
 
 <!-- badges: start -->
-[![CRAN version](https://img.shields.io/cran/v/ggplotplus.svg)](https://CRAN.R-project.org/package=ggplotplus)
+[![CRAN version](https://img.shields.io/cran/v/ggplotplus.svg?color=brightgreen)](https://CRAN.R-project.org/package=ggplotplus)
 [![R-CMD-check](https://github.com/MAISRC/ggplotplus/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/MAISRC/ggplotplus/actions/workflows/R-CMD-check.yaml)
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
