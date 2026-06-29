@@ -92,7 +92,7 @@ The `ggplotplus` package is guided by three core principles:
 The package has one primary function and then several more that are most applicable only in certain situations (some of which are common, others of which are rarer):
 
 | Function | Purpose |
-|------------------------------------|------------------------------------|
+|----|----|
 | `theme_plus()` | An opinionated version of `ggplot2`'s base `theme_gray` theme, with changes to the settings for size, spacing, legend placement, geom-specific defaults, and much more. This is *the* most critical function in the package and should be used in nearly every `ggplot` call. |
 | `yaxis_title_plus()` | A function for relocating the y-axis title from its normal, less accessible location and orientation. Not often desirable in faceted plots, but often desirable in all other circumstances. |
 | `scale_continuous_plus()` | Drop-in replacement for `ggplot2`'s `scale_x/y/color/fill_continuous()` functions. It attempts to ensure axis breakpoints and limits are set to ensure that the entire range of your graphed data are labeled. Useful for every continuous scale in your graph. |

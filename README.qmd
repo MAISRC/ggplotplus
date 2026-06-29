@@ -24,6 +24,12 @@ version: "0.5.6"
 
 # *ggplotplus* -- Universal Design additions for *ggplot2*
 
+<!-- badges: start -->
+
+[![CRAN status](https://www.r-pkg.org/badges/version/ggplotplus)](https://CRAN.R-project.org/pckage=ggplotplus) [![R-CMD-check](https://github.com/MAISRC/ggplotplus/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/MAISRC/ggplotplus/actions/workflows/R-CMD-check.yaml) [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+
+<!-- badges: end -->
+
 ## What's `ggplotplus` for?
 
 `ggplot2` is an *extraordinarily* powerful graphics package, used by perhaps millions to produce graphs for posters, presentations, papers, and exploration. `ggplotplus` enhances `ggplot2` by:

@@ -1,11 +1,21 @@
 # README
 Dr. Alex Bajcz, Quantitative Ecologist, Minnesota Aquatic Invasive
 Species Research Center (MAISRC)
-2026-06-18
+2026-06-29
 
 <img src="man/figures/ggplotplus_hex.png" alt="ggplotplus hex sticker" style="float: right; width: 180px;"/>
 
 # *ggplotplus* – Universal Design additions for *ggplot2*
+
+<!-- badges: start -->
+
+[![CRAN
+status](https://www.r-pkg.org/badges/version/ggplotplus.png)](https://CRAN.R-project.org/pckage=ggplotplus)
+[![R-CMD-check](https://github.com/MAISRC/ggplotplus/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/MAISRC/ggplotplus/actions/workflows/R-CMD-check.yaml)
+[![Lifecycle:
+experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+
+<!-- badges: end -->
 
 ## What’s `ggplotplus` for?
 
