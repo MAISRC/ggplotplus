@@ -10,11 +10,11 @@ Species Research Center (MAISRC)
 <!-- badges: start -->
 
 [![CRAN
-status](https://www.r-pkg.org/badges/version/ggplotplus.png)](https://CRAN.R-project.org/pckage=ggplotplus)
+status](https://www.r-pkg.org/badges/version/ggplotplus.png)](https://CRAN.R-project.org/package=ggplotplus)
 [![R-CMD-check](https://github.com/MAISRC/ggplotplus/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/MAISRC/ggplotplus/actions/workflows/R-CMD-check.yaml)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
-[![CRAN status](https://www.r-pkg.org/badges/version/ggplotplus)](https://CRAN.R-project.org/package=ggplotplus)
+
 <!-- badges: end -->
 
 ## What’s `ggplotplus` for?
