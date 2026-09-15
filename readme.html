@@ -2,12 +2,10 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.9.37">
+<meta name="generator" content="quarto-1.9.38">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="Dr.&nbsp;Alex Bajcz, Quantitative Ecologist, Minnesota Aquatic Invasive Species Research Center (MAISRC)">
-<meta name="dcterms.date" content="2026-06-29">
 
 <title>readme</title>
 <style>
@@ -70,7 +68,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="README_files/libs/quarto-html/tippy.umd.min.js"></script>
 <script src="README_files/libs/quarto-html/anchor.min.js"></script>
 <link href="README_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="README_files/libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="README_files/libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="README_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="README_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="README_files/libs/bootstrap/bootstrap-98fa28be62b8f7881547832ee57e92b3.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
@@ -85,41 +83,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="README.md"><i class="bi bi-file-code"></i>Github (GFM)</a></li></ul></div></div>
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default">
-<div class="quarto-title">
-</div>
 
 
 
-<div class="quarto-title-meta">
-
-    <div>
-    <div class="quarto-title-meta-heading">Author</div>
-    <div class="quarto-title-meta-contents">
-             <p>Dr.&nbsp;Alex Bajcz, Quantitative Ecologist, Minnesota Aquatic Invasive Species Research Center (MAISRC) </p>
-          </div>
-  </div>
-    
-    <div>
-    <div class="quarto-title-meta-heading">Published</div>
-    <div class="quarto-title-meta-contents">
-      <p class="date">June 29, 2026</p>
-    </div>
-  </div>
-  
-    
-  </div>
-  
-
-
-</header>
-
-
-<p><img src="man/figures/ggplotplus_hex.png" alt="ggplotplus hex sticker" style="float: right; width: 180px;"></p>
 <section id="ggplotplus-universal-design-additions-for-ggplot2" class="level1">
-<h1><em>ggplotplus</em> – Universal Design additions for <em>ggplot2</em></h1>
+<h1><em>ggplotplus</em> — Universal Design additions for <em>ggplot2</em> <img src="man/figures/ggplotplus_hex.png" align="right" height="139" alt="ggplotplus logo"></h1>
 <!-- badges: start -->
-<p><a href="https://CRAN.R-project.org/package=ggplotplus"><img src="https://img.shields.io/cran/v/ggplotplus.svg" class="img-fluid" alt="CRAN version"></a> <a href="https://github.com/MAISRC/ggplotplus/actions/workflows/R-CMD-check.yaml"><img src="https://github.com/MAISRC/ggplotplus/actions/workflows/R-CMD-check.yaml/badge.svg" class="img-fluid" alt="R-CMD-check"></a> <a href="https://lifecycle.r-lib.org/articles/stages.html#experimental"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" class="img-fluid" alt="Lifecycle: experimental"></a> <!-- badges: end --></p>
+<p><a href="https://CRAN.R-project.org/package=ggplotplus"><img src="https://img.shields.io/cran/v/ggplotplus.svg?color=brightgreen" class="img-fluid" alt="CRAN version"></a> <a href="https://github.com/MAISRC/ggplotplus/actions/workflows/R-CMD-check.yaml"><img src="https://github.com/MAISRC/ggplotplus/actions/workflows/R-CMD-check.yaml/badge.svg" class="img-fluid" alt="R-CMD-check"></a> <a href="https://lifecycle.r-lib.org/articles/stages.html#experimental"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" class="img-fluid" alt="Lifecycle: experimental"></a> <!-- badges: end --></p>
 <section id="whats-ggplotplus-for" class="level2">
 <h2 class="anchored" data-anchor-id="whats-ggplotplus-for">What’s <code>ggplotplus</code> for?</h2>
 <p><code>ggplot2</code> is an <em>extraordinarily</em> powerful graphics package, used by perhaps millions to produce graphs for posters, presentations, papers, and exploration. <code>ggplotplus</code> enhances <code>ggplot2</code> by:</p>
@@ -274,7 +244,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>In this version, our eyes can’t help but be drawn to the brightly colored group first, helping us to understand the message of your graph quicker.</p>
+<p>In this version, our eyes can’t help but be drawn to the brightly colored group first, helping us to understand the message of your graph quicker. <code>scale_focus_plus()</code> also supports drawing focus via <code>size</code>, <code>linewidth</code>, or <code>alpha</code> (transparency) instead via its <code>aes</code> argument.</p>
 <section id="try-out-new-shapes" class="level3">
 <h3 class="anchored" data-anchor-id="try-out-new-shapes">Try out new shapes</h3>
 <p><code>ggplotplus</code> also introduces a new palette of shapes designed to be more distinctive than base R’s point shapes. Access these via <code>geom_point_plus()</code>:</p>
@@ -314,6 +284,31 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>The above graphs demonstrates how <code>ggplotplus</code>’s tools rethink the default design features of <code>ggplot2</code>. The intention is to yield a more universal product more quickly so you can spend less time fiddling with your graphs and more time sharing them with a wider audience.</p>
 <p>However, there’s a <em>lot</em> more to know! If you want to dive deeper, <a href="https://maisrc.github.io/ggplotplus/">check out the full package cookbook</a>.</p>
 </section>
+</section>
+<section id="experimental-icon-arrays" class="level2">
+<h2 class="anchored" data-anchor-id="experimental-icon-arrays">(EXPERIMENTAL) Icon Arrays</h2>
+<p>Frequency data (e.g., 12%) are unintuitive for a large fraction of people. Icon arrays–plots in which icons are arrayed in a rectangular grid and colored or shaped according to observed frequencies–can help. <code>ggplotplus</code> now features <code>icon_array_plus()</code>, which takes a vector of observations and generates a basic icon array from them:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>er_visits <span class="ot">=</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="st">"Non-urgent"</span>, <span class="dv">88</span>), <span class="fu">rep</span>(<span class="st">"Urgent"</span>, <span class="dv">12</span>))</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">icon_array_plus</span>(</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">vector =</span> er_visits,</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">legend_title =</span> <span class="st">"ER visits"</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="README_files/figure-html/icon%20array-1.png" class="img-fluid figure-img" width="720"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Icon arrays have been shown to be much more intuitive for readers who might find percentages, bar graphs, or especially pie charts difficult to interpret and reason about.</p>
+<p><code>icon_array_plus()</code> uses <code>geom_point_plus()</code> under the hood, so you can use any shapes available in the <code>ggplotplus</code> shapes palette or register your own using <code>add_shape_plus()</code>!</p>
+</section>
+<section id="coaching" class="level2">
+<h2 class="anchored" data-anchor-id="coaching">Coaching</h2>
+<p><code>ggplotplus</code> attempts to determine if your graphs contain any sub-optimal practices. If it finds any evidence of any, it will print coaching messages to the Console. If these messages get disruptive, set <code>enable_coaching</code> to <code>FALSE</code> in <code>yaxis_title_plus()</code>, <code>theme_plus()</code>, or <code>gridlines_plus()</code> to turn them off. You can also disable them for the current session via <code>options(ggplotplus.enable_coaching = FALSE)</code>.</p>
 </section>
 <section id="development" class="level2">
 <h2 class="anchored" data-anchor-id="development">Development</h2>

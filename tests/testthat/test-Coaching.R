@@ -1,3 +1,28 @@
+#A HANDY CONVENIENCE FUNCTION FROM CODEX THAT ALLOWS FOR CHECKING FOR JUST A SPECIFIC MESSAGE SUBSTRING TO MAKE TESTS FOR SPECIFIC COACHING MESSAGES ONLY MORE TARGETED.
+expect_no_matching_message = function(object, pattern) {
+
+  messages = character()
+
+  withCallingHandlers(
+    force(object),
+    message = function(message_condition) {
+      messages <<- c(messages, conditionMessage(message_condition))
+      invokeRestart("muffleMessage")
+    }
+  )
+
+  testthat::expect_false(
+    any(
+      grepl(pattern, messages, fixed = TRUE)
+    ),
+    info = paste0("Unexpected message matching `", pattern, "`.")
+  )
+
+  return(invisible(messages))
+
+}
+
+
 test_that("coaching warns for too many discrete fill values", {
   dat = data.frame(
     x = seq_len(10),
@@ -53,6 +78,61 @@ test_that("coaching can be disabled globally", {
 })
 
 
+test_that("coaching warns when alt text is missing", {
+
+  p = ggplot2::ggplot(
+    iris,
+    ggplot2::aes(x = Sepal.Length, y = Petal.Length)
+  ) +
+    ggplot2::geom_point() +
+    theme_plus(enable_coaching = TRUE)
+
+  expect_message(
+    ggplot2::ggplot_build(p),
+    "Your plot lacks alt text",
+    fixed = TRUE
+  )
+
+})
+
+
+test_that("coaching treats NA alt text as missing", {
+
+  p = ggplot2::ggplot(
+    iris,
+    ggplot2::aes(x = Sepal.Length, y = Petal.Length)
+  ) +
+    ggplot2::geom_point() +
+    theme_plus(enable_coaching = TRUE) +
+    ggplot2::labs(alt = NA_character_)
+
+  expect_message(
+    ggplot2::ggplot_build(p),
+    "Your plot lacks alt text",
+    fixed = TRUE
+  )
+
+})
+
+
+test_that("alt text prevents alt-text coaching", {
+
+  p = ggplot2::ggplot(
+    iris,
+    ggplot2::aes(x = Sepal.Length, y = Petal.Length)
+  ) +
+    ggplot2::geom_point() +
+    theme_plus(enable_coaching = TRUE) +
+    add_alttext_plus("A scatterplot of sepal length and petal length.")
+
+  expect_no_matching_message(
+    ggplot2::ggplot_build(p),
+    "Your plot lacks alt text"
+  )
+
+})
+
+
 test_that("bar/column coaching is quiet when ordinary baseline is visible", {
 
   plot_data = iris %>%
@@ -67,10 +147,7 @@ test_that("bar/column coaching is quiet when ordinary baseline is visible", {
     theme_plus() +
     labs(fill = "A title", x = "Another title", y = "A third title")
 
-  expect_message(
-    print(p),
-    NA
-  )
+  expect_no_matching_message(print(p), "omitting 0 distorts")
 
 })
 
@@ -110,10 +187,7 @@ test_that("bar/column coaching is quiet when log10 baseline is visible", {
     ggplot2::scale_x_log10() +
     labs(fill = "A title", x = "Another title", y = "A third title")
 
-  expect_message(
-    print(p),
-    NA
-  )
+  expect_no_matching_message(print(p), "omitting 0 distorts")
 
 })
 
@@ -175,9 +249,6 @@ test_that("bar/column coaching ignores non-bar geoms", {
     labs(x = "A title", y = "Another title") +
     ggplot2::coord_cartesian(y = c(3, 5))
 
-  expect_message(
-    print(p),
-    NA
-  )
+  expect_no_matching_message(print(p), "omitting 0 distorts")
 
 })

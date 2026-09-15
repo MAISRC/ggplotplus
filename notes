@@ -26,3 +26,37 @@ devtools::check_win_release()
 devtools::spell_check()
 urlchecker::url_check()
 devtools::submit_cran()
+
+
+library(dplyr)
+library(ggplot2)
+library(cranlogs)
+downloads = cran_downloads(
+packages = "ggplotplus",
+from = "2026-06-01",
+to = Sys.Date()
+)
+downloads %>%
+summarize(
+total = sum(count),
+mean_per_day = mean(count),
+max_day = max(count)
+)
+ggplot(downloads, aes(x = date, y = count)) +
+geom_col() +
+labs(
+x = NULL,
+y = "CRAN downloads",
+title = "ggplotplus CRAN downloads"
+)
+downloads %>%
+mutate(
+rolling_7day = slider::slide_dbl(count, mean, .before = 6, .complete = TRUE)
+) %>%
+ggplot(aes(x = date, y = rolling_7day)) +
+geom_line() +
+labs(
+x = NULL,
+y = "7-day mean downloads",
+title = "ggplotplus CRAN downloads"
+)

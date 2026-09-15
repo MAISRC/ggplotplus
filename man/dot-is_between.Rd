@@ -24,4 +24,9 @@ falls within a numeric range. The input range is sorted before comparison, so
 the function is insensitive to whether the range is supplied as low-high or
 high-low.
 }
+\details{
+Also now used in validation processes. In this context, it usefully rejects
+NA values as valid numbers, even values like NA_real_, which counts as a 1L
+numeric.
+}
 \keyword{internal}

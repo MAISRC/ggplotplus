@@ -391,6 +391,7 @@ scale_continuous_plus =
 #' @param export_width,export_height Length-1 numeric values indicating your intended export (most likely via ggplot2::ggsave()) width and height, respectively. This rescales font and line sizes internally to stay relatively appropriately for your intended export size.
 #' @param override_legend_alphasize Logical indicating whether, for any fill, color, and/or shape legends, to override the size and/or alpha values to the ggplotplus default values (1 and 5, respectively). Defaults to TRUE.
 #' @param enable_coaching Logical indicating whether ggplotplus should perform certain automated checks for possible non-Universal graph design and provide coaching messages when these are detected. Defaults to TRUE.
+#' @param blank_axes Logical indicating whether x and y axis titles, labels, lines, and tick marks should be turned off. This will, in part, simulate the effects of `ggplot2::theme_void()` and is mainly used internally by `icon_array_plus()`.
 #'
 #' @return A ggplot2 theme object to add with `+`.
 #'
@@ -450,7 +451,28 @@ theme_plus = function(...,
                       export_width = 7.25,
                       export_height = 5.95,
                       override_legend_alphasize = TRUE,
-                      enable_coaching = TRUE) {
+                      enable_coaching = TRUE,
+                      blank_axes = FALSE
+                      ) {
+
+  if(!is.logical(blank_axes) ||
+     length(blank_axes) != 1L ||
+     is.na(blank_axes)){
+    stop("`blank_axes` must be TRUE or FALSE.")
+  }
+
+  if(blank_axes){
+    blank_axis_theme = ggplot2::theme(
+      axis.line = ggplot2::element_blank(),
+      axis.text = ggplot2::element_blank(),
+      axis.ticks = ggplot2::element_blank(),
+      axis.title = ggplot2::element_blank(),
+      axis.title.x = ggplot2::element_blank(),
+      axis.title.y = ggplot2::element_blank(),
+    )
+  } else {
+    blank_axis_theme = ggplot2::theme()
+  }
 
   #ONE ODD INTERACTION IS WITH strip.text(), WHICH CAN ONLY BE BLANKED BY HITTING X AND Y SEPARATELY. SOMETHING TO PONDER WHEN ADJUSTING SUBSCALES SEPARATELY...
   user_theme = ggplot2::theme(...)
@@ -460,6 +482,20 @@ theme_plus = function(...,
       ggplot2::theme(
         strip.text.x = ggplot2::element_blank(),
         strip.text.y = ggplot2::element_blank()
+      )
+  }
+  if(inherits(dots$axis.title, "element_blank")) {
+    user_theme = user_theme +
+      ggplot2::theme(
+        axis.title.x = ggplot2::element_blank(),
+        axis.title.y = ggplot2::element_blank()
+      )
+  }
+  if(inherits(dots$axis.text, "element_blank")) {
+    user_theme = user_theme +
+      ggplot2::theme(
+        axis.text.x = ggplot2::element_blank(),
+        axis.text.y = ggplot2::element_blank()
       )
   }
 
@@ -536,7 +572,7 @@ theme_plus = function(...,
 
   #THIS NEXT LINE ENSURES THAT WE JUST RETURN A THEME OPTION RIGHT AWAY SO GGPLOT2 CAN HANDLE ALL THE COLLISIONS AND ADDING AS IT NORMALLY WOULD. NO NEED FOR A GGPLOT.ADD DISPATCH!
   #WE COLLIDE WITH A BASE GGPLOT2 THEME LAST IN CASE THE USER PROVIDES ANY CUSTOM GGPLOT2 THEMING OF THEIR OWN HERE, AS A CONVENIENCE.
-  theme_plus2add = default_theme + .determine_legend_theme(legend_pos) + gg_palette_theme + user_theme
+  theme_plus2add = default_theme + blank_axis_theme + .determine_legend_theme(legend_pos) + gg_palette_theme + user_theme
 
   ThemePlus(
     applyGeomDefaults = TRUE,
@@ -552,7 +588,7 @@ theme_plus = function(...,
 
 #' Create and add a scatterplot layer to your `ggplot2` graph with new, distinctive shapes.
 #'
-#' This function behaves similarly to `ggplot2::geom_point()` except that it takes several new inputs: `shapes`, `n_shapes`, `shape_values`, `legend_title`, `key_size`, and `show_shape_scale`. These are explained below.
+#' This function behaves similarly to `ggplot2::geom_point()` except that it takes several new inputs: `shapes`, `n_shapes`, `chosen_shapes`, `legend_title`, `key_size`, and `show_shape_scale`. These are explained below.
 #'
 #' Collectively, these inputs allow `geom_point_plus()` to access and draw several new and distinctive shapes that are designed to be more readily distinguishable from one another when shape communicates difference.
 #'
@@ -579,10 +615,10 @@ theme_plus = function(...,
 #' @examples
 #' ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg, fill = drat)) +
 #' geom_point_plus(ggplot2::aes(shape = factor(gear)), size = 5)
-#' ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg, fill = factor(cyl))) +
-#' geom_point_plus(ggplot2::aes(shape = factor(carb)),
-#' shape_values = c("squircle", "lotus", "sunburst", "octagon", "cross", "oval"),
-#' size = 5, stroke = 0.4)
+# ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg, fill = factor(cyl))) +
+# geom_point_plus(ggplot2::aes(shape = factor(carb)),
+# chosen_shapes = c("squircle", "lotus", "sunburst", "octagon", "plus", "oval"),
+# size = 5, stroke = 0.4)
 #' ggplot2::ggplot(iris, ggplot2::aes(Petal.Width, Petal.Length, fill = Species)) +
 #' geom_point_plus(ggplot2::aes(shape = Species), size = 5, alpha = 0.7)
 #'
@@ -1056,88 +1092,124 @@ direct_labels_plus = function(data,
 
 }
 
-#' Turn on a "focus mode" to highlight specific groups via color or fill
+#' Turn on a "focus mode" to highlight specific discrete groups
 #'
-#' `scale_focus_plus()` is a wrapper for `ggplot2`'s `scale_fill/colour_manual`
-#' functions that helps a user quickly creates a manual color or fill scale
-#' that highlights one or more focal groups while de-emphasizing all other
-#' groups (via desaturation, by default). This is useful when a graph would
+#' `scale_focus_plus()` is a wrapper for ggplot2 manual scale functions that
+#' helps a user quickly create a discrete scale that highlights one or more
+#' focal groups while de-emphasizing all other groups via chroma (grayness),
+#' size, line width, or transparency. This is useful when a graph would
 #' ideally call attention to specific groups without removing the broader
 #' context and transparency provided by the remaining groups. This reduces
 #' cognitive load by allowing non-essential information to "fall into the
-#' background" to be readily ignored, increasing the reading rate, and also
+#' background" to be readily ignored, increasing the reading rate, and it also
 #' helps to signpost for the reader where the "message" is within the plot.
 #'
-#' By default, focal groups are assigned visually prominent colors from the
-#' Universal-Design-oriented viridis color palette via `viridisLite::viridis()`,
-#' while non-focal groups are assigned a shared gray. Focal groups are
-#' differentiated from one another by default; non-focal groups are not. These
-#' defaults are intended to support a common graph-design pattern:
-#' show all groups, but make the intended comparison obvious.
+#' By default, when `aes` is set to `fill` or `color`, focal groups are assigned
+#' visually prominent colors from the Universal-Design-oriented viridis color
+#' palette via `viridisLite::viridis()`, while non-focal groups are assigned a
+#' shared gray.
 #'
-#' Note that the default values for `gray_start`, `gray_end`, `focal_start`, and
-#' `focal_end` intentionally map to different regions of the luminance (light
+#' By default, focal groups are differentiated from one another, while
+#' non-focal groups are not. These defaults are intended to support a common
+#' graph-design pattern: show all groups, but make the intended comparison
+#' the reader ought to make obvious.
+#'
+#' Note: the default values for `gray_start`, `gray_end`, `saturated_start`, and
+#' `saturated_end` intentionally map to different regions of the lightness (light
 #' to dark) scale so as to render the colors still distinguishable in grayscale
-#' by virtue of variance in luminance. This variance should be maintained for
+#' by virtue of variance in lightness. This variance should be maintained for
 #' accessibility even if different inputs are provided.
 #'
-#' @param aes A character string indicating which aesthetic should receive the
-#'   focus scale. Must be one of `"color"`, `"colour"`, or `"fill"`.
+#' Focus can also be drawn via the aesthetics of size, line width, and alpha,
+#' as these aesthetics are useful in many situations where variance in chroma is
+#' not.
+#'
+#' @param aes A character vector indicating which aesthetics should receive
+#'   focus scales. Each value must be one of `"color"`, `"colour"`, `"fill"`,
+#'   `"size"`, `"linewidth"`, or `"alpha"`. Supply one value to create one
+#'   scale or multiple values as a convenience to focus via several
+#'   aesthetics at once. Duplicate aesthetics are not allowed; `"color"` and
+#'   `"colour"` are considered equivalent.
 #' @param group_var A character vector or factor containing the grouping variable
-#'   mapped to `aes`. This should generally be the same vector mapped to `colour`,
-#'   `color`, or `fill` in the plot.
+#'   mapped to `aes` in the plot.
 #' @param focal_groups A character vector giving the group value(s) in the
 #' `group_var` to be emphasized. All values must be present in `group_var`.
 #' @param diff_nonfocal Logical. If `TRUE`, non-focal groups are assigned
-#'   different (gray/custom) color values. If `FALSE`, all non-focal groups
-#'   receive the same (gray/custom) value. Defaults to `FALSE`.
+#'   different aesthetic values. If `FALSE`, all non-focal groups receive the
+#'   same value. Defaults to `FALSE`.
 #' @param diff_focal Logical. If `TRUE`, focal groups are assigned different
-#'   (viridis/custom) colors. If `FALSE`, all focal groups receive the same
-#'   (viridis/custom) color. Defaults to `TRUE`.
+#'   aesthetic values. If `FALSE`, all focal groups receive the same value.
+#'   Defaults to `TRUE`.
 #' @param gray_start,gray_end Numeric values between 0 and 1 controlling the
-#'   range of gray values used for non-focal groups when custom_nonfocal is not
-#'   NULL. Lower values are darker and higher values are lighter. `gray_start`
+#'   range of gray values used for non-focal groups when `custom_nonfocal_cols`
+#'   is `NULL`. Lower values are darker and higher values are lighter. `gray_start`
 #'   must be less than or equal to `gray_end`.
-#' @param focal_start,focal_end Numeric values between 0 and 1 controlling the
-#'   portions of the viridis palette used for focal groups when custom_focal is
-#'   not NULL. By default, `scale_focus_plus()` draws from the darker and lighter
+#' @param saturated_start,saturated_end Numeric values between 0 and 1 controlling the
+#'   portions of the viridis palette used for focal groups when `custom_focal_cols`
+#'   is `NULL`. By default, `scale_focus_plus()` draws from the darker and lighter
 #'   ends of the palette while avoiding the middle, as humans are generally more
-#'   drawn to very bright and very dark colors. `focal_end` must be less than
-#'   or equal to `focal_start`.
-#' @param custom_focal Optional custom color(s) for focal group(s). When
+#'   drawn to very bright and very dark colors. `saturated_end` must be less than
+#'   or equal to `saturated_start`.
+#' @param custom_focal_cols Optional custom color(s) for focal group(s). When
 #'   `diff_focal = TRUE`, this must be a named character vector whose names
 #'   match the unique values in `focal_groups`. When `diff_focal = FALSE`,
 #'   this must be a character vector of length 1.
-#' @param custom_nonfocal Optional custom color(s) for non-focal group(s). When
+#' @param custom_nonfocal_cols Optional custom color(s) for non-focal group(s). When
 #'   `diff_nonfocal = TRUE`, this must be a named character vector whose names
 #'   match the non-focal values in `group_var`. When `diff_nonfocal = FALSE`,
 #'   this must be a character vector of length 1.
-#' @param ... Additional arguments passed to
-#'   [ggplot2::scale_colour_manual()] or [ggplot2::scale_fill_manual()]. Do not
-#'   supply `values`; `scale_focus_plus()` constructs the `values` argument
-#'   internally. All other arguements should be accessible, including `labels`
-#'   and `name`. Use these to relabel and retitle the created scale.
+#' @param size_start,size_end Positive numeric values controlling the most and
+#'   least prominent point sizes, respectively. `size_start` is assigned at the
+#'   focal end of the scale and must be greater than `size_end`.
+#' @param linewidth_start,linewidth_end Positive numeric values controlling the
+#'   most and least prominent line widths, respectively. `linewidth_start` is
+#'   assigned at the focal end of the scale and must be greater than
+#'   `linewidth_end`.
+#' @param alpha_start,alpha_end Numeric values between 0 and 1 controlling the
+#'   most and least prominent alpha values, respectively. `alpha_start` is
+#'   assigned at the focal end of the scale and must be greater than
+#'   `alpha_end`.
+#' @param ... Additional arguments passed to each corresponding ggplot2 manual
+#'   scale. Do not supply `values` or `aesthetics`; `scale_focus_plus()`
+#'   constructs those arguments internally. When `aes` contains multiple
+#'   aesthetics, every argument in `...` is passed to every generated scale.
+#'   Arguments such as `labels`, `name`, and `guide` can therefore be shared
+#'   conveniently. To pass different arguments to different scales, use
+#'   multiple separate `scale_focus_plus()` calls instead.
 #'
 #' @details
 #' `scale_focus_plus()` is a convenience wrapper around
-#' [ggplot2::scale_colour_manual()] and [ggplot2::scale_fill_manual()]. It does
+#' ggplot2 manual scales for colour, fill, size, linewidth, and alpha. It does
 #' not alter the data or add any geoms. Instead, it constructs a named vector of
-#' colors from `group_var` and `focal_groups`, then passes that vector to the
-#' appropriate ggplot2 manual color/fill scale.
+#' aesthetic values from `group_var` and `focal_groups`, then passes that vector
+#' to the appropriate ggplot2 manual scale.
+#'
+#' Supplying multiple values to `aes` is shorthand for adding multiple separate
+#' `scale_focus_plus()` calls with the same focal settings and `...` arguments
+#' to be applied to all of them. Calling each aesthetic separately instead is
+#' useful when, for example, the scales need different names, guides, breaks,
+#' or labels.
 #'
 #' This function is most useful when the focal/non-focal distinction is the
 #' primary visual message, and all non-focal groups may be secondary. When
 #' individual non-focal groups must remain distinguishable, set
-#' `diff_nonfocal = TRUE` or provide `custom_nonfocal`.
+#' `diff_nonfocal = TRUE` or provide `custom_nonfocal_cols` values.
+#'
+#' Scales apply to every layer that maps or inherits the selected aesthetic. To
+#' focus point size without also invoking ggplot2's backwards-compatible `size`
+#' behavior for lines, map `size` locally inside the point layer rather than in
+#' the plot's global aesthetic mapping (i.e., `geom_point(aes(size = ...))`).
 #'
 #' Although `scale_focus_plus()` is designed for discrete data, it can also be
 #' used when the data requiring (de-)emphasis is continuous. In those cases,
 #' first create a discrete grouping variable in the data, then map that variable
-#' to `colour` or `fill`. For example, a continuous measurement could be
+#' to the selected aesthetic. For example, a continuous measurement could be
 #' converted to groups such as `"High cover"` and `"Other"` before calling
-#' `scale_focus_plus()`. See the examples section for an example.
+#' `scale_focus_plus()`. See the examples section.
 #'
-#' @return A ggplot2 scale object.
+#' @return A ggplot2 scale object when `aes` contains one aesthetic, or a list
+#'   of ggplot2 scale objects when `aes` contains multiple aesthetics. Either
+#'   return value can be added directly to a ggplot with `+`.
 #'
 #' @examples
 #' lake_dat = data.frame(
@@ -1165,6 +1237,40 @@ direct_labels_plus = function(data,
 #'              group_var = lake_dat$lake,
 #'              focal_groups = c("Lake A", "Lake C"))
 #'
+#' # Focus through several aesthetics with one convenience call. Arguments in
+#' # ... (here, guide) are shared by every generated scale.
+#' ggplot2::ggplot(
+#'   lake_dat,
+#'   ggplot2::aes(x = year,
+#'                y = cpue,
+#'                colour = lake,
+#'                group = lake)
+#' ) +
+#'   ggplot2::geom_line(ggplot2::aes(linewidth = lake)) +
+#'   ggplot2::geom_point(ggplot2::aes(size = lake, alpha = lake)) +
+#'   scale_focus_plus(aes = c("colour", "linewidth", "size", "alpha"),
+#'                    group_var = lake_dat$lake,
+#'                    focal_groups = c("Lake A", "Lake C"),
+#'                    diff_focal = FALSE,
+#'                    guide = "none")
+#'
+#' # Use separate calls when the scales need different arguments.
+#' ggplot2::ggplot(
+#'   lake_dat,
+#'   ggplot2::aes(x = year, y = cpue, group = lake)
+#' ) +
+#'   ggplot2::geom_point(
+#'     ggplot2::aes(colour = lake, size = lake)
+#'   ) +
+#'   scale_focus_plus(aes = "colour",
+#'                    group_var = lake_dat$lake,
+#'                    focal_groups = "Lake A",
+#'                    name = "Highlighted lake") +
+#'   scale_focus_plus(aes = "size",
+#'                    group_var = lake_dat$lake,
+#'                    focal_groups = "Lake A",
+#'                    guide = "none")
+#'
 #' # One can use a shared focal color and a custom non-focal gray.
 #' ggplot2::ggplot(
 #'   lake_dat,
@@ -1178,8 +1284,8 @@ direct_labels_plus = function(data,
 #'              group_var = lake_dat$lake,
 #'              focal_groups = c("Lake A", "Lake C"),
 #'              diff_focal = FALSE,
-#'              custom_focal = "#440154",
-#'              custom_nonfocal = "gray70")
+#'              custom_focal_cols = "#440154",
+#'              custom_nonfocal_cols = "gray70")
 #'
 #' cover_dat = data.frame(
 #'   taxon = c("Native plants",
@@ -1223,8 +1329,8 @@ direct_labels_plus = function(data,
 #                    group_var = site_dat$cover_group,
 #                    focal_groups = "High cover",
 #                    diff_focal = FALSE,
-#                    custom_focal = "#440154",
-#                    custom_nonfocal = "gray75") +
+#                    custom_focal_cols = "#440154",
+#                    custom_nonfocal_cols = "gray75") +
 #   ggplot2::labs(x = NULL,
 #                 y = "Mean percent cover",
 #                 fill = NULL)
@@ -1236,14 +1342,39 @@ scale_focus_plus = function(aes,
                             diff_focal = TRUE,
                             gray_start = 0.35, #<--ADJUST EXACT COLORS USED.
                             gray_end = 0.65,
-                            focal_start = 0.75,
-                            focal_end = 0.25,
-                            custom_focal = NULL,
-                            custom_nonfocal = NULL,
+                            saturated_start = 0.75,
+                            saturated_end = 0.25,
+                            custom_focal_cols = NULL,
+                            custom_nonfocal_cols = NULL,
+                            size_start = 6.5,
+                            size_end = 3.5,
+                            linewidth_start = 2,
+                            linewidth_end = 0.6,
+                            alpha_start = 1,
+                            alpha_end = 0.35,
                             ...) { #<--PASS THRU TO SCALE_*_MANUAL()
 
-  ##FAIL EARLYS
-  aes = match.arg(aes, c("color", "colour", "fill"))
+  ##GENERAL, AES-AGNOSTIC EARLY FAILS
+  validAes = c("color", "colour", "fill", "size", "linewidth", "alpha")
+
+  if(!is.character(aes) ||
+     length(aes) < 1L ||
+     anyNA(aes) ||
+     any(is.null(aes))) {
+    stop("`aes` must contain only one or more supported aesthetics. See ?scale_focus_plus for details.")
+  }
+
+  aes = vapply(aes, function(a) {
+    match.arg(a, validAes)  #BY DOING IT THIS WAY, WE WILL ACTUALLY TRIGGER AN ERROR IF ANY INPUT WERE TO FAIL FOR ANY REASON (IT'S BOGUS, IT'S MISTYPED, ETC.)
+  }, character(1))
+
+  #NORMALIZE TO ONE COLOR SPELLING
+  aes[aes == "color"] = "colour"
+
+  if(anyDuplicated(aes)) {
+    stop("`aes` must not contain duplicate aesthetics (`color` and `colour` would be considered equivalent in this sense)")
+  }
+
 
   if(all(!is.character(group_var),
          !is.factor(group_var)) ||
@@ -1269,35 +1400,84 @@ scale_focus_plus = function(aes,
     stop("Invalid `focal_groups`: Missing values are not allowed.")
   }
 
-  if(gray_start > gray_end) {
-    stop("`gray_start` must be less than or equal to `gray_end`.")
+
+  #COLOR-SPECIFIC EARLY FAILS
+  if(any(aes %in% c("color", "colour", "fill"))) {
+
+    if(!is.numeric(gray_start) || !is.numeric(gray_end) ||
+       !is.numeric(saturated_start) || !is.numeric(saturated_end) ||
+       length(gray_start) != 1 || length(gray_end) != 1 ||
+       length(saturated_start) != 1 || length(saturated_end) != 1) {
+      stop("`saturated_start`, `saturated_end`, `gray_start`, and `gray_end` must all be length-1 numeric values between 0 and 1 (inclusive).")
+    }
+
+    if(!.is_between(gray_start, range = c(0,1)) ||
+       !.is_between(gray_end, range = c(0,1)) ||
+       !.is_between(saturated_start, range = c(0,1)) ||
+       !.is_between(saturated_end, range = c(0,1))) {
+      stop("`saturated_start`, `saturated_end`, `gray_start`, and `gray_end` must all be length-1 numeric values between 0 and 1 (inclusive).")
+    }
+
+    if(gray_start > gray_end) {
+      stop("`gray_start` must be less than or equal to `gray_end`.")
+    }
+
+    if(saturated_end > saturated_start) {
+      stop("`saturated_end` must be less than or equal to `saturated_start`.")
+    }
   }
 
-  if(focal_end > focal_start) {
-    stop("`focal_end` must be less than or equal to `focal_start`.")
+  #NON-COLOR SPECIFIC EARLY FAILS
+  if("size" %in% aes) {
+    if(!is.numeric(size_start) || !is.numeric(size_end) ||
+       length(size_start) != 1 || length(size_end) != 1 ||
+       !is.finite(size_start) || !is.finite(size_end) ||
+       size_start <= 0 || size_end <= 0) {
+      stop("`size_start` and `size_end` must be length-1, finite, positive numeric values.")
+    }
+    if(size_start <= size_end) {
+      stop("`size_start` must be greater than `size_end` to ensure focal groups are larger.")
+    }
   }
 
-  if(!is.numeric(gray_start) || !is.numeric(gray_end) ||
-     !is.numeric(focal_start) || !is.numeric(focal_end) ||
-     length(gray_start) != 1 || length(gray_end) != 1 ||
-     length(focal_start) != 1 || length(focal_end) != 1 ) {
-    stop("`focal_start`, `focal_end`, `gray_start`, and `gray_end` must all be length-1 numeric values between 0 and 1 (inclusive).")
+  if("linewidth" %in% aes) {
+    if(!is.numeric(linewidth_start) || !is.numeric(linewidth_end) ||
+       length(linewidth_start) != 1 || length(linewidth_end) != 1 ||
+       !is.finite(linewidth_start) || !is.finite(linewidth_end) ||
+       linewidth_start <= 0 || linewidth_end <= 0) {
+      stop("`linewidth_start` and `linewidth_end` must be length-1, finite, positive numeric values.")
+    }
+    if(linewidth_start <= linewidth_end) {
+      stop("`linewidth_start` must be greater than `linewidth_end` to ensure focal groups have wider lines.")
+    }
   }
 
-  if(!.is_between(gray_start, range = c(0,1)) ||
-     !.is_between(gray_end, range = c(0,1)) ||
-     !.is_between(focal_start, range = c(0,1)) ||
-     !.is_between(focal_end,  range = c(0,1))) {
-    stop("`focal_start`, `focal_end`, `gray_start`, and `gray_end` must all be length-1 numeric values between 0 and 1 (inclusive).")
+  if("alpha" %in% aes) {
+    if(!is.numeric(alpha_start) || !is.numeric(alpha_end) ||
+       length(alpha_start) != 1 || length(alpha_end) != 1 ||
+       !.is_between(alpha_start, range = c(0,1)) ||
+       !.is_between(alpha_end, range = c(0,1))) {
+      stop("`alpha_start` and `alpha_end` must be length-1 numeric values between 0 and 1 (inclusive).")
+    }
+    if(alpha_start <= alpha_end) {
+      stop("`alpha_start` must be greater than `alpha_end` to ensure focal groups are more opaque.")
+    }
   }
 
-  dot.args = list(...) #NO NEED YET TO PRACTICE ANY PARTIAL ARGUMENT MATCHING OR ARGUMENT COLLISIONS BECAUSE I'M NOT PASSING ANY DEFAULTS.
+  dot.args = list(...) #NO NEED FOR PARTIAL MATCHING OR COLLISIONS BECAUSE I'M NOT PASSING ANYTHING BUT OVERRIDE-ABLE DEFAULT VALUES TO THE SCALE FUNCTION(S)
 
-  any_values = .partial_match_user_arg(dot.args, "values")
+  any_values = any(pmatch(names(dot.args), "values", nomatch = 0L) > 0L) #EXCEPT FOR THIS. THIS FORMAT CHECKS NAMES RATHER THAN VALUES SO PEOPLE CAN'T PASS NULL THRU FOR A NAMED AESTHETIC AND SQUEEZE IT BY.
 
-  if(length(any_values) >= 1) {
+  if(any_values) {
     dot.args = .remove_partial_match_user_arg(dot.args, "values")
-    warning("Don't provide a `values` argument to `scale_focus_plus`. Use `focal_start`, `focal_end`, `gray_start`, and `gray_end` to control colors.")
+    warning("Don't provide a `values` argument to `scale_focus_plus`. It constructs `values` internally using your other inputs. ")
+  }
+
+  any_aesthetics = any(pmatch(names(dot.args), "aesthetics", nomatch = 0L) > 0L) #AND THIS.
+
+  if(any_aesthetics) {
+    dot.args = .remove_partial_match_user_arg(dot.args, "aesthetics")
+    warning("Don't provide an `aesthetics` argument to `scale_focus_plus`. Use `aes` instead.")
   }
 
   ##CONVENIENCE OBJS, TIDYING, AND SECONDARY FAIL STATES.
@@ -1317,39 +1497,47 @@ scale_focus_plus = function(aes,
     stop("There are not enough unique levels in `group_var` for a 'focus mode' to make sense given your input to `focal_groups`.")
   }
 
-  if(!is.null(custom_focal)) {
+
+  #HAPPY PATH FOR COLOR-RELATED AESTHETICS
+  finalReturn = list()
+
+  for(a in seq_along(aes)) {
+
+  if(aes[a] %in% c("color", "colour", "fill")) {
+
+  if(!is.null(custom_focal_cols)) {
 
     bad_custom_focal =
-      !is.character(custom_focal) ||
+      !is.character(custom_focal_cols) ||
       if(diff_focal) {
-        !rlang::is_named(custom_focal) ||
-          !identical(sort(names(custom_focal)), sort(allFocal))
+        !rlang::is_named(custom_focal_cols) ||
+          !identical(sort(names(custom_focal_cols)), sort(allFocal))
       } else {
-        length(custom_focal) != 1
+        length(custom_focal_cols) != 1
       }
 
     if(bad_custom_focal) {
       stop(
-        "Invalid `custom_focal` argument: It must be a named character vector equal in name and number to the unique, differentiated groups in `focal_groups` when `diff_focal = TRUE`, or a character vector of length 1 when `diff_focal = FALSE`.",
+        "Invalid `custom_focal_cols` argument: It must be a named character vector equal in name and number to the unique, differentiated groups in `focal_groups` when `diff_focal = TRUE`, or a character vector of length 1 when `diff_focal = FALSE`.",
         call. = FALSE
       )
     }
   }
 
-  if(!is.null(custom_nonfocal)) {
+  if(!is.null(custom_nonfocal_cols)) {
 
     bad_custom_nonfocal =
-      !is.character(custom_nonfocal) ||
+      !is.character(custom_nonfocal_cols) ||
       if(diff_nonfocal) {
-        !rlang::is_named(custom_nonfocal) ||
-          !identical(sort(names(custom_nonfocal)), sort(allNonfocal))
+        !rlang::is_named(custom_nonfocal_cols) ||
+          !identical(sort(names(custom_nonfocal_cols)), sort(allNonfocal))
       } else {
-        length(custom_nonfocal) != 1
+        length(custom_nonfocal_cols) != 1
       }
 
     if(bad_custom_nonfocal) {
       stop(
-        "Invalid `custom_nonfocal` argument: It must be a named character vector equal in name and number to the unique, differentiated, non-focal groups in `group_var` when `diff_nonfocal = TRUE`, or a character vector of length 1 when `diff_nonfocal = FALSE`.",
+        "Invalid `custom_nonfocal_cols` argument: It must be a named character vector equal in name and number to the unique, differentiated, non-focal groups in `group_var` when `diff_nonfocal = TRUE`, or a character vector of length 1 when `diff_nonfocal = FALSE`.",
         call. = FALSE
       )
     }
@@ -1357,7 +1545,7 @@ scale_focus_plus = function(aes,
 
   ##HAPPY PATH--CHOOSE COLORS ACCORDING TO INPUTS
 
-  if(is.null(custom_nonfocal)) {
+  if(is.null(custom_nonfocal_cols)) {
 
     #CHOOSE GRAYS--DEFAULTS TO SMALL VARIANCE IN THE MIDDLE GRAY RANGE.
     if(isTRUE(diff_nonfocal)) {
@@ -1371,21 +1559,21 @@ scale_focus_plus = function(aes,
   } else {
 
     if(isTRUE(diff_nonfocal)) {
-      nonfocal_cols = custom_nonfocal[as.character(allNonfocal)]
+      nonfocal_cols = custom_nonfocal_cols[as.character(allNonfocal)]
     } else {
-      nonfocal_cols = rep(custom_nonfocal[[1]], length.out = numNonFocal)
+      nonfocal_cols = rep(custom_nonfocal_cols[[1]], length.out = numNonFocal)
     }
 
   }
 
-  if(is.null(custom_focal)) {
+  if(is.null(custom_focal_cols)) {
 
     #CHOOSE VIRIDIS VALS--DEFAULTS TO LARGE VARIANCE IN LIGHT/DARK RANGES.
     n_focal_each = 64
 
     viridisCensored = c(
-      viridisLite::viridis(n = n_focal_each, begin = focal_start, end = 1),
-      viridisLite::viridis(n = n_focal_each, begin = 0, end = focal_end)
+      viridisLite::viridis(n = n_focal_each, begin = saturated_start, end = 1),
+      viridisLite::viridis(n = n_focal_each, begin = 0, end = saturated_end)
     )
 
     if(isTRUE(diff_focal)) {
@@ -1399,9 +1587,9 @@ scale_focus_plus = function(aes,
   } else {
 
     if(isTRUE(diff_focal)) {
-      focal_cols = custom_focal[as.character(allFocal)]
+      focal_cols = custom_focal_cols[as.character(allFocal)]
     } else {
-      focal_cols = rep(custom_focal[[1]], length.out = numFocalGroups)
+      focal_cols = rep(custom_focal_cols[[1]], length.out = numFocalGroups)
     }
 
   }
@@ -1410,19 +1598,644 @@ scale_focus_plus = function(aes,
   names(all_cols) = c(as.character(allNonfocal),
                       as.character(allFocal))
 
+  scale2call = paste0("scale_", aes[a], "_manual")
 
-  if(aes == "color") { aes = "colour" }
 
-  scale2call = paste0("scale_", aes, "_manual")
-
-  do.call(scale2call, args = c(list(
+  addThisCall = do.call(scale2call, args = c(list(
     values = all_cols
   ),
   dot.args
   ))
 
+  finalReturn[[length(finalReturn) + 1L]] = addThisCall #THIS FORMAT IS LESS APT TO BREAK THAN c().
+
+  }
+
+  #HAPPY PATH FOR NON-COLOR-RELATED AESTHETICS
+  if(aes[a] %in% c("size", "linewidth", "alpha")) {
+
+    valsFocal = ifelse(diff_focal, length(allFocal), 1)
+    valsNonfocal = ifelse(diff_nonfocal, length(allNonfocal), 1)
+    valsNum = valsFocal + valsNonfocal
+
+    if(aes[a] == "size") { startVal = size_start; endVal = size_end }
+    if(aes[a] == "linewidth") { startVal = linewidth_start; endVal = linewidth_end }
+    if(aes[a] == "alpha") { startVal = alpha_start; endVal = alpha_end }
+
+    customVals = seq(from = startVal, to = endVal, length.out = valsNum)
+
+    if(length(customVals) == 2) {
+      customVals = rep(customVals, times = c(length(allFocal), length(allNonfocal)))
+    }
+
+    if(length(customVals) > 2 &&
+       length(customVals) < length(c(allFocal, allNonfocal))) {
+      if(diff_focal) {
+        customVals = c(
+          customVals[seq_len(length(customVals) - 1L)],
+          rep(customVals[length(customVals)], times = length(allNonfocal))
+        )
+      } else {
+        customVals = c(
+          rep(customVals[1], times = length(allFocal)),
+          customVals[seq.int(2L, length(customVals))]
+        )
+      }
+    }
+
+    names(customVals) = c(as.character(allFocal), as.character(allNonfocal))
+
+    addThisCall = do.call(ggplot2::scale_discrete_manual, args = c(list(
+      values = customVals,
+      aesthetics = aes[a]
+    ),
+    dot.args
+    ))
+
+    finalReturn[[length(finalReturn) + 1L]] = addThisCall
+   }
+  }
+
+  #PRESERVES A SCALE OBJECT RETURN IF THERE'S ONLY 1 SCALE TO RETURN (FOR BACKWARDS COMPATABILITY)
+  if(length(finalReturn) == 1L) {
+    return(finalReturn[[1]])
+  }
+
+  return(finalReturn)
 
 }
+
+
+#' Create an icon array from frequency data
+#'
+#' `icon_array_plus()` turns a vector of categorical observations into an
+#' icon array, a plot representing frequencies using differentiated icons.
+#' Each icon represents one observation unless the data are rescaled to remain
+#' at or below `max_icons`. Groups can be distinguished using the fill, colour,
+#' and/or custom shape aesthetics available through [geom_point_plus()].
+#'
+#' @param vector A vector of at least 10 observations to tabulate. The vector
+#' must not be a list or contain only missing values. Each distinct non-missing
+#' value is treated as one group; missing values are retained as an additional,
+#' separate group.
+#' @param aeses A character vector containing one or more of `"shape"`,
+#' `"fill"`, and `"colour"`. `"color"` is accepted as an alias for
+#' `"colour"`. Each selected aesthetic is mapped to the icon grouping variable.
+#' Defaults to `c("shape", "fill")`.
+#' @param max_icons A length-one finite integer greater than 9 giving the
+#' maximum number of icons to draw. This is a limit, not a target. When the
+#' input contains more observations, group frequencies are scaled
+#' proportionally and can produce fewer than `max_icons` icons. In other words,
+#' partial icons are not drawn. Defaults to `100`.
+#' @param max_observed_groups A positive, length-one integer giving the maximum
+#' number of non-missing groups to display when `consolidate_small_groups` is
+#' `TRUE`. The generated `other_label` group counts toward this maximum, while
+#' a missing-value group does not. Defaults to `5`.
+#' @param consolidate_small_groups Logical indicating whether the least
+#' frequent groups should be combined into an `other_label` group when the
+#' number of observed non-missing groups exceeds `max_observed_groups`.
+#' Defaults to `TRUE`.
+#' @param sort_descending Logical indicating whether groups should be arranged
+#' from greatest to least in observed frequencies. Sorting uses frequencies before
+#' any rescaling to `max_icons`. If `FALSE`, standard ordering based on
+#' alphanumeric ordering is used. Defaults to `TRUE`.
+#' @param other_label A non-missing ,length-one character value used to label the
+#' group created by consolidation. Defaults to `"Other"`. When consolidation
+#' is required, the value provided must not already occur as an observed group.
+#' @param na_label A non-missing, length-one character value used to label the
+#' group containing missing observations. Defaults to `"Missing"`. If missing
+#' observations occur, the value provided must not also occur as an observed group.
+#' @param icon_size A positive, length-one, finite number controlling the size of
+#' icons passed to [geom_point_plus()]. Defaults to `10`.
+#' @param chosen_icon_shapes An optional character vector naming shapes in the
+#' current `geom_point_plus()` shape registry. When shape is mapped, these
+#' values determine the shape sequence; if shape is the only grouping
+#' aesthetic, enough unique shapes must be supplied to distinguish every
+#' displayed group. When shape is not mapped, exactly one shape can be supplied
+#' and is used for every icon. The default constant shape is `"square"`, yielding
+#' a standard "waffle plot."
+#' @param include_legend Logical indicating whether a legend should be displayed.
+#' Defaults to `TRUE`.
+#' @param legend_title A non-missing, length-one character value used as the
+#' title for the legend. Defaults to `"Group"`.
+#' @param legend_labels An optional character vector containing one display
+#' label for every group that remains after consolidation and rescaling. An
+#' unnamed vector is matched to groups in plotted order. A named vector can be
+#' supplied in any order, but its names must correspond exactly to the
+#' post-processing group names, including `other_label` and `na_label` when
+#' those groups are displayed.
+#' @param ... Additional fixed-aesthetic and graphical parameters passed to
+#' [geom_point_plus()]. Inputs controlled internally by `icon_array_plus()`,
+#' such as `mapping`, `data`, `stat`, `position`, `size`, `shape`, and legend or
+#' shape-scale controls, are ignored with a warning. A fixed `fill` or `colour`
+#' can be supplied only when that aesthetic is not included in `aeses`.
+#' Unnamed arguments are ignored.
+#' @param max_aspect A length-one finite number of at least 1 limiting how many
+#' times wider than tall a non-square candidate layout may be. Layout selection
+#' minimizes unused positions first and then favors more nearly square arrays
+#' among tied candidates. Defaults to `2.5`.
+#' @param legend_icon_size A positive, length-one, finite number controlling icon
+#' size in the legend. Defaults to `10`.
+#'
+#' @details
+#' If the input contains more than `max_icons` observations, frequencies are
+#' scaled proportionally. Fractional counts of at least half an icon are
+#' eligible to round up so long as total icons remain below `max_icons`; smaller
+#' fractions are omitted (no partial icons are drawn). Rescaling can therefore
+#' remove very small groups and does not necessarily produce exactly `max_icons`
+#' icons. The function stops if fewer than 10 icons would remain, as such a
+#' small number of icons is not typically a good use case for an icon array.
+#'
+#' When consolidation is enabled, the most frequent non-missing groups are
+#' retained and the remaining groups are combined under `other_label`. Missing
+#' values remain separate from this process and can therefore produce one more
+#' displayed group than `max_observed_groups`.
+#'
+#' The selected layout minimizes empty positions while excluding excessively
+#' wide layouts according to `max_aspect`. Icons begin at the upper-left, fill
+#' downward within each column, and then proceed from left to right.
+#'
+#' The returned object is a complete plot object: no call to `ggplot2::ggplot()`
+#' is needed! But it remains possible to add ggplot2 layers, scales, labels, and
+#' themes with `+`. Axes are blanked using [theme_plus()] with
+#' `blank_axes = TRUE`.
+#' When colour is not mapped, the discrete fill palette is extended through to
+#' the yellow end of the viridis scale because icons retain a dark outline by
+#' default that maintains contrast. Adding another `theme_plus()` call later can
+#' override palette settings; use `blank_axes = TRUE` in that call to retain the
+#' icon-array axis treatment.
+#'
+#' @return A complete ggplot2 plot containing the generated icon-array data, a
+#' [geom_point_plus()] layer, grouping guides, and an axis-free [theme_plus()].
+#'
+#' @examples
+#' outcomes = c(
+#'   rep("Yes", 62),
+#'   rep("No", 25),
+#'   rep("Unsure", 13)
+#' )
+#'
+#' icon_array_plus(outcomes)
+#'
+#' icon_array_plus(
+#'   outcomes,
+#'   aeses = c("shape", "fill"),
+#'   chosen_icon_shapes = c("circle", "square", "flower"),
+#'   legend_title = "Response",
+#'   legend_labels = c(
+#'     Yes = "Yes",
+#'     No = "No",
+#'     Unsure = "Not sure"
+#'   )
+#' )
+#'
+#' # Custom shapes can turn a conventional waffle plot into a true icon array.
+#' head_angles = seq(0, 2 * pi, length.out = 33)[-33]
+#' silhouette_head = data.frame(
+#'   x = 0.09 * cos(head_angles),
+#'   y = 0.31 + 0.09 * sin(head_angles),
+#'   piece = 1
+#' )
+#'
+#' male_body = data.frame(
+#'   x = c(-0.11, -0.22, -0.30, -0.23, -0.16, -0.14, -0.04,
+#'          0.00,  0.04,  0.14,  0.16,  0.23,  0.30,  0.22,  0.11),
+#'   y = c( 0.18,  0.12, -0.08, -0.11,  0.02, -0.38, -0.38,
+#'         -0.14, -0.38, -0.38,  0.02, -0.11, -0.08,  0.12,  0.18),
+#'   piece = 2
+#' )
+#' male_silhouette = rbind(silhouette_head, male_body)
+#'
+#' female_body = data.frame(
+#'   x = c(-0.08, -0.18, -0.28, -0.21, -0.14, -0.25,
+#'          0.25,  0.14,  0.21,  0.28,  0.18,  0.08),
+#'   y = c( 0.18,  0.11, -0.08, -0.11,  0.01, -0.25,
+#'         -0.25,  0.01, -0.11, -0.08,  0.11,  0.18),
+#'   piece = 2
+#' )
+#' female_legs = data.frame(
+#'   x = c(-0.12, -0.03, -0.03, -0.12,
+#'          0.03,  0.12,  0.12,  0.03),
+#'   y = c(-0.25, -0.25, -0.40, -0.40,
+#'         -0.25, -0.25, -0.40, -0.40),
+#'   piece = rep(3:4, each = 4)
+#' )
+#' female_silhouette = rbind(silhouette_head, female_body, female_legs)
+#'
+#' add_shape_plus(
+#'   "example_male_silhouette",
+#'   male_silhouette,
+#'   overwrite = TRUE
+#' )
+#' add_shape_plus(
+#'   "example_female_silhouette",
+#'   female_silhouette,
+#'   overwrite = TRUE
+#' )
+#'
+#' shop_visits = c(rep("Female", 78), rep("Male", 22))
+#'
+#' icon_array_plus(
+#'   shop_visits,
+#'   chosen_icon_shapes = c(
+#'     "example_female_silhouette",
+#'     "example_male_silhouette"
+#'   ),
+#'   legend_title = "Shop visits"
+#' )
+#'
+#' @seealso [geom_point_plus()], [add_shape_plus()], [theme_plus()]
+#' @export
+icon_array_plus = function(
+    vector,
+    aeses = c("shape", "fill"),
+    max_icons = 100,
+    max_observed_groups = 5,
+    consolidate_small_groups = TRUE,
+    sort_descending = TRUE, #IF FALSE, WILL RESPECT STANDARD ALPHANUMERIC ORDERING, NOT FIRST APPEARANCE ORDERING.
+    other_label = "Other",
+    na_label = "Missing",
+    icon_size = 10,
+    chosen_icon_shapes = NULL,
+    include_legend = TRUE,
+    legend_title = "Group",
+    legend_labels = NULL, #IF A NAMED VECTOR, MUST BE GROUP NAMES POST-PROCESSING WHICH MIGHT SUBSUME THE na_label AND/OR other_label NAMES.
+    ...,
+    max_aspect = 2.5,
+    legend_icon_size = 10
+) {
+
+  #EARLY FAILS
+
+  if(is.null(vector) ||
+     all(is.na(vector)) ||
+     is.list(vector) ||
+     length(vector) < 10 ||
+     length(table(vector)) < 1
+  ) {
+    stop("`vector` must be a vector of length 10 or greater, not all values of which are NA.")
+  }
+
+  if(is.null(aeses) ||
+     !is.character(aeses) ||
+     any(is.na(aeses))) {
+    stop("`aeses` must be a character vector containing one or more of \"shape\", \"fill\", and \"colour\".")
+  }
+
+  aeses[aeses == "color"] = "colour"
+  aeses = unique(aeses)
+  bad_aeses = setdiff(aeses, c("shape", "fill", "colour"))
+  if(length(aeses) < 1 ||                                                                                  length(aeses) > 3 ||                                                                                  length(bad_aeses) > 0) {
+    stop("`aeses` must be one or more of \"shape\", \"fill\", and \"colour\".")
+  }
+
+  if(is.null(max_observed_groups) ||
+     length(max_observed_groups) != 1 ||
+     !is.numeric(max_observed_groups) ||
+     is.na(max_observed_groups) ||
+     !is.finite(max_observed_groups) ||
+     max_observed_groups < 1 ||
+     max_observed_groups %% 1 != 0
+  ) {
+    stop("`max_observed_groups` must be a positive length-one finite integer.")
+  }
+
+  #FAIL EARLYS
+  if(is.null(max_icons) ||
+     any(is.na(max_icons)) ||
+     !is.numeric(max_icons) ||
+     length(max_icons) != 1 ||
+     !is.finite(max_icons) ||
+     max_icons < 10 ||
+     max_icons %% 1 != 0) {
+    stop("`max_icons` must be a length-one numeric finite integer greater than 9.")
+  }
+
+  if(is.null(na_label) ||
+     length(na_label) != 1 ||
+     is.na(na_label) ||
+     !is.character(na_label)
+  ) {
+    stop("`na_label` must be a non-missing length-one character value.")
+  }
+
+  if(is.null(consolidate_small_groups) ||
+     length(consolidate_small_groups) != 1 ||
+     is.na(consolidate_small_groups) ||
+     !is.logical(consolidate_small_groups)
+  ) {
+    stop("`consolidate_small_groups` must be TRUE or FALSE.")
+  }
+
+  if(is.null(sort_descending) ||
+     length(sort_descending) != 1 ||
+     is.na(sort_descending) ||
+     !is.logical(sort_descending)
+  ) {
+    stop("`sort_descending` must be TRUE or FALSE.")
+  }
+
+  if(is.null(other_label) ||
+     length(other_label) != 1 ||
+     is.na(other_label) ||
+     !is.character(other_label)
+  ) {
+    stop("`other_label` must be a non-missing length-one character value.")
+  }
+
+  if(is.null(max_aspect) ||
+     length(max_aspect) != 1L ||
+     !is.numeric(max_aspect) ||
+     is.na(max_aspect) ||
+     !is.finite(max_aspect) ||
+     max_aspect < 1
+  ) {
+    stop("`max_aspect` must be a length-one finite numeric value of at least 1.")
+  }
+
+  if(is.null(icon_size) ||
+     length(icon_size) != 1 ||
+     !is.numeric(icon_size) ||
+     is.na(icon_size) ||
+     !is.finite(icon_size) ||
+     icon_size <= 0
+  ) {
+    stop("`icon_size` must be a positive length-one finite number.")
+  }
+
+  if(is.null(legend_icon_size) ||
+     length(legend_icon_size) != 1 ||
+     !is.numeric(legend_icon_size) ||
+     is.na(legend_icon_size) ||
+     !is.finite(legend_icon_size) ||
+     legend_icon_size <= 0
+  ) {
+    stop("`legend_icon_size` must be a positive length-one finite number.")
+  }
+
+  if(is.null(include_legend) ||
+     length(include_legend) != 1 ||
+     is.na(include_legend) ||
+     !is.logical(include_legend)
+  ) {
+    stop("`include_legend` must be TRUE or FALSE.")
+  }
+
+  if(is.null(legend_title) ||
+     length(legend_title) != 1 ||
+     is.na(legend_title) ||
+     !is.character(legend_title)
+  ) {
+    stop("`legend_title` must be a non-missing length-one character value.")
+  }
+
+  if(!is.null(legend_labels)) {
+
+    if(!is.character(legend_labels) ||
+       any(is.na(legend_labels))) {
+      stop("If provided, `legend_labels` must be a character vector with no missing entries.")
+    }
+
+  }
+
+
+  if(!is.null(chosen_icon_shapes)) {
+
+    chosen_icon_shapes = .standardize_pointplus_shape_names(chosen_icon_shapes)
+
+    if(any(is.na(chosen_icon_shapes)) ||
+       length(chosen_icon_shapes) < 1 ||
+       any(!chosen_icon_shapes %in% names(.pointplus_shapes()))
+    ) {
+      stop("Every `chosen_icon_shapes` value provided must be a registered shape name.")
+    }
+  }
+
+  #GEN ICON ARRAY DF
+  icon_df = .iconarrayize(
+    vector = vector,
+    max_icons = max_icons,
+    na_label = na_label,
+    max_aspect = max_aspect,
+    consolidate_small_groups = consolidate_small_groups,
+    other_label = other_label,
+    max_observed_groups = max_observed_groups,
+    sort_descending = sort_descending
+  )
+
+  shape_is_mapped = "shape" %in% aeses
+  num_groups_drawn = length(unique(icon_df$group))
+
+  if(shape_is_mapped) {
+
+    if(identical(aeses, "shape") &&
+       !is.null(chosen_icon_shapes) &&
+       length(unique(chosen_icon_shapes)) < num_groups_drawn) {
+      stop("If `shape` is your only aes, provide at least as many unique values to `chosen_icon_shapes` as will be displayed to keep groups distinguishable.")
+    }
+
+    num_shapes_registered = length(.pointplus_shapes())
+
+    if(num_groups_drawn > num_shapes_registered) {
+      stop("Not enough shapes registered in the `pointplus_shapes` palette to draw unique shapes for that many groups! Consolidate groups or use `add_shape_plus()` to add additional shapes.")
+    }
+  }
+
+  drawn_groups = levels(icon_df$group)
+
+  if(!is.null(legend_labels)) {
+
+    if(length(legend_labels) != length(drawn_groups)) {
+      stop("If provided, `legend_labels` must contain a label for every displayed group.")
+    }
+
+    if(is.null(names(legend_labels))) {
+      names(legend_labels) = drawn_groups
+    } else {
+
+      if(any(is.na(names(legend_labels))) ||
+         any(names(legend_labels) == "") ||
+         anyDuplicated(names(legend_labels)) ||
+         !dplyr::setequal(names(legend_labels), drawn_groups)) {
+        stop("If `legend_labels` is named, those names must correspond exactly with those of the displayed groups.")
+      }
+    }
+
+    legend_labels = legend_labels[drawn_groups] #THIS JUST PUTS "NAMED ORDER" INTO "PLOTTED ORDER," WHICH ISN'T NECESSARY BUT IS NICE.
+  }
+
+  dot.args = list(...)
+
+  legend_labeler = function(x) {
+    return(unname(legend_labels[x]))
+  }
+
+  #NEED TO PREVENT SOME ...S FROM GOING THRU...
+
+  any_mapping = .partial_match_user_arg_index(dot.args, "mapping")
+  if(length(any_mapping) == 1) {
+    dot.args = dot.args[-any_mapping]
+    warning("Don't provide a `mapping` input to `icon_array_plus()`. It constructs this input internally.")
+  }
+  any_data = .partial_match_user_arg_index(dot.args, "data")
+  if(length(any_data) == 1) {
+    dot.args = dot.args[-any_data]
+    warning("Don't provide `data` to `icon_array_plus()`. It constructs this input internally. Did you mean `vector`?")
+  }
+  any_stat = .partial_match_user_arg_index(dot.args, "stat")
+  if(length(any_stat) == 1) {
+    dot.args = dot.args[-any_stat]
+    warning("Don't provide a `stat` input to `icon_array_plus()`. It determines this input internally.")
+  }
+  any_position = .partial_match_user_arg_index(dot.args, "position")
+  if(length(any_position) == 1) {
+    dot.args = dot.args[-any_position]
+    warning("Don't provide a `position` input to `icon_array_plus()`. It determines this input internally.")
+  }
+  any_inherit = .partial_match_user_arg_index(dot.args, "inherit.aes")
+  if(length(any_inherit) == 1) {
+    dot.args = dot.args[-any_inherit]
+    warning("Don't provide a `inherit.aes` input to `icon_array_plus()`. It determines this input internally.")
+  }
+  any_size = .partial_match_user_arg_index(dot.args, "size")
+  if(length(any_size) == 1) {
+    dot.args = dot.args[-any_size]
+    warning("Don't provide a `size` input to `icon_array_plus()`. Use `icon_size` instead.")
+  }
+  any_chosenshapes = .partial_match_user_arg_index(dot.args, "chosen_shapes")
+  if(length(any_chosenshapes) == 1) {
+    dot.args = dot.args[-any_chosenshapes]
+    warning("Don't provide a `chosen_shapes` input to `icon_array_plus()`. Use `chosen_icon_shapes` instead.")
+  }
+  any_shapescale = .partial_match_user_arg_index(dot.args, "show_shape_scale")
+  if(length(any_shapescale) == 1) {
+    dot.args = dot.args[-any_shapescale]
+    warning("Don't provide a `show_shape_scale` input to `icon_array_plus()`. This parameter is controlled internally.")
+  }
+  any_showlegend = .partial_match_user_arg_index(dot.args, "show.legend")
+  if(length(any_showlegend) == 1) {
+    dot.args = dot.args[-any_showlegend]
+    warning("Don't provide a `show.legend` input to `icon_array_plus()`. Use `include_legend` instead.")
+  }
+  any_availshapes = .partial_match_user_arg_index(dot.args, "avail_shapes")
+  if(length(any_availshapes) == 1) {
+    dot.args = dot.args[-any_availshapes]
+    warning("Don't provide a `avail_shapes` input to `icon_array_plus()`.")
+  }
+  any_nshapes = .partial_match_user_arg_index(dot.args, "n_shapes")
+  if(length(any_nshapes) == 1) {
+    dot.args = dot.args[-any_nshapes]
+    warning("Don't provide a `n_shapes` input to `icon_array_plus()`.")
+  }
+  any_shape = .partial_match_user_arg_index(dot.args, "shape")
+  if(length(any_shape) == 1) {
+    dot.args = dot.args[-any_shape]
+    warning("Don't provide a `shape` input to `icon_array_plus()`. Use `chosen_icon_shapes` instead.")
+  }
+  any_shapelegend = .partial_match_user_arg_index(dot.args, "include_shape_legend")
+  if(length(any_shapelegend) == 1) {
+    dot.args = dot.args[-any_shapelegend]
+    warning("Don't provide a `include_shape_legend` input to `icon_array_plus()`. Use `include_legend` instead.")
+  }
+  if("fill" %in% aeses) {
+    any_fill = .partial_match_user_arg_index(dot.args, "fill")
+    if(length(any_fill) == 1) {
+      dot.args = dot.args[-any_fill]
+      warning("Don't provide a separate `fill` input to `icon_array_plus()` when `\"fill\"` is provided to `aeses`.")
+    }
+  }
+  if("colour" %in% aeses) {
+    any_color = .partial_match_user_arg_index(dot.args, "color")
+    if(length(any_color) == 1) {
+      dot.args = dot.args[-any_color]
+      warning("Don't provide a separate `color` input to `icon_array_plus()` when `\"colour\"` (or `\"color\"`) is mapped via `aeses`.") #CODEX, PLEASE STOP WHINING ABOUT THIS :)
+    }
+    any_colour = .partial_match_user_arg_index(dot.args, "colour")
+    if(length(any_colour) == 1) {
+      dot.args = dot.args[-any_colour]
+      warning("Don't provide a separate `colour` input to `icon_array_plus()` when `\"colour\"` is provided to `aeses`.")
+    }
+  }
+
+  #REMOVE ALL UNNAMED ARGS
+  dot_arg_names = names(dot.args)
+  if(is.null(dot_arg_names)) { dot_arg_names = rep("", length(dot.args)) }
+  unnamed_args = is.na(dot_arg_names) | dot_arg_names == ""
+
+  if(any(unnamed_args)) {
+    dot.args = dot.args[!unnamed_args]
+    message("Unnamed arguments to icon_array_plus() were removed.")
+  }
+
+
+  #THIS APPROACH ONLY ADDS AESTHETICS THAT ACTUALLY SHOULD GET MAPPED--OTHERWISE, WE MIGHT ACCIDENTALLY MAP THEM TO AN EXPRESSION THAT RESOLVES TO NULL LATER, WHICH IS STILL A MAPPING AS FAR AS GGPLOT2 IS CONCERNED.
+  mapping_args = list(
+    x = quote(.data$x),
+    y = quote(.data$y)
+  )
+  for(i in aeses) {
+    mapping_args[[i]] = quote(.data$group)
+  }
+
+  icon_mapping = do.call(ggplot2::aes, mapping_args)
+
+  #WE WANT TO OVERRIDE THE DEFAULT SUCH THAT A SQUARE IS THE SINGULAR ICON USED UNLESS OTHERWISE SPECIFIED.
+  icon_shapes = chosen_icon_shapes
+
+  if(!shape_is_mapped) {
+    if(is.null(icon_shapes)) {
+      icon_shapes = "square"
+    }
+    if(length(icon_shapes) != 1L) {
+      stop("Only one `chosen_icon_shapes` value should be supplied when shape is not being mapped.")
+    }
+  }
+
+  #ASSEMBLED, SCRUBBED "PARTS LIST."
+  point_args = c(
+    list(
+      mapping = icon_mapping,
+      chosen_shapes = icon_shapes,
+      size = icon_size,
+      show_shape_scale = shape_is_mapped,
+      show.legend = include_legend,
+      legend_labels = if(shape_is_mapped && !is.null(legend_labels)) {
+        legend_labeler
+      } else {
+        NULL
+      }
+    ),
+    dot.args
+  )
+
+  point_layer = do.call(geom_point_plus, point_args)
+
+  #ASSEMBLE COMPLETE PLOT OBJ.
+  plot = ggplot2::ggplot(data = icon_df) +
+    point_layer +
+    guides(
+      fill = if("fill" %in% aeses) { guide_legend(override.aes = list(size = legend_icon_size), title = legend_title) } else { NULL },
+      colour = if("colour" %in% aeses) { guide_legend(override.aes = list(size = legend_icon_size), title = legend_title) } else { NULL },
+      shape = if("shape" %in% aeses) { guide_legend(override.aes = list(size = legend_icon_size), title = legend_title) } else { NULL }
+    )
+
+  if("fill" %in% aeses && !is.null(legend_labels)) {
+    plot = plot + scale_fill_discrete(labels = legend_labeler)
+  }
+  if("colour" %in% aeses && !is.null(legend_labels)) {
+    plot = plot + scale_colour_discrete(labels = legend_labeler)
+  }
+
+  if("colour" %in% aeses) {
+    plot = plot + theme_plus(blank_axes = TRUE)
+  } else {
+    plot = plot + theme_plus(blank_axes = TRUE, end_discrete = 1)
+  }
+
+  return(plot)
+
+}
+
 
 #' Demo plot showing geom_point_plus() shapes
 #'
@@ -1591,6 +2404,44 @@ add_shape_plus = function(name = NULL,
   }
 
   invisible(name) #AN INVISIBLE RETURN FOR SAFETY.
+}
+
+
+#' Add Alternative Text to a ggplot
+#'
+#' Adds alternative text to a ggplot object for use by screen readers and other
+#' tools. This is a convenience wrapper for `ggplot2::labs(alt = text)`.
+#'
+#' @param text A length-one, non-empty character string containing the intended
+#'   alternative text.
+#'
+#' @return A ggplot2 labels object for adding to a plot with `+`.
+#'
+#' @details
+#' Useful alternative text generally identifies the chart type, the variables
+#' shown, and the main trends or takeaways that a sighted reader could readily
+#' discern from examining the plot.
+#'
+#' @examples
+#' ggplot2::ggplot(iris, ggplot2::aes(Sepal.Length, Petal.Length)) +
+#'   ggplot2::geom_point() +
+#'   add_alttext_plus(
+#'     "Scatterplot showing a positive relationship between sepal and petal length."
+#'   )
+#'
+#' @export
+add_alttext_plus = function(text) {
+
+  if(!is.character(text) ||
+     length(text) != 1L ||
+     is.na(text) ||
+     text == "") {
+    stop("`text` must be a length-one, non-empty character string!",
+         call. = FALSE)
+  }
+
+  return(ggplot2::labs(alt = text))
+
 }
 
 

@@ -57,7 +57,7 @@ geom_point_plus(
 A ggplot2 layer object.
 }
 \description{
-This function behaves similarly to \code{ggplot2::geom_point()} except that it takes several new inputs: \code{shapes}, \code{n_shapes}, \code{shape_values}, \code{legend_title}, \code{key_size}, and \code{show_shape_scale}. These are explained below.
+This function behaves similarly to \code{ggplot2::geom_point()} except that it takes several new inputs: \code{shapes}, \code{n_shapes}, \code{chosen_shapes}, \code{legend_title}, \code{key_size}, and \code{show_shape_scale}. These are explained below.
 }
 \details{
 Collectively, these inputs allow \code{geom_point_plus()} to access and draw several new and distinctive shapes that are designed to be more readily distinguishable from one another when shape communicates difference.
@@ -69,10 +69,6 @@ Note: As of Version 0.5.2, shapes 21-25 in R's default shapes palette are now al
 \examples{
 ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg, fill = drat)) +
 geom_point_plus(ggplot2::aes(shape = factor(gear)), size = 5)
-ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg, fill = factor(cyl))) +
-geom_point_plus(ggplot2::aes(shape = factor(carb)),
-shape_values = c("squircle", "lotus", "sunburst", "octagon", "cross", "oval"),
-size = 5, stroke = 0.4)
 ggplot2::ggplot(iris, ggplot2::aes(Petal.Width, Petal.Length, fill = Species)) +
 geom_point_plus(ggplot2::aes(shape = Species), size = 5, alpha = 0.7)
 

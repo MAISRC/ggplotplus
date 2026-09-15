@@ -58,9 +58,9 @@ axis or colorbar visually unlabeled, making it look as if an endpoint break is
 missing.
 
 \code{scale_continuous_plus()} routes to one of
-\code{\link[ggplot2:scale_continuous]{ggplot2::scale_x_continuous()}}, \code{\link[ggplot2:scale_continuous]{ggplot2::scale_y_continuous()}},
+\code{\link[ggplot2:scale_x_continuous]{ggplot2::scale_x_continuous()}}, \code{\link[ggplot2:scale_y_continuous]{ggplot2::scale_y_continuous()}},
 \code{\link[ggplot2:scale_colour_continuous]{ggplot2::scale_colour_continuous()}}, or
-\code{\link[ggplot2:scale_colour_continuous]{ggplot2::scale_fill_continuous()}} based on \code{scale}.
+\code{\link[ggplot2:scale_fill_continuous]{ggplot2::scale_fill_continuous()}} based on \code{scale}.
 
 Unlike the ggplot2 defaults, this function intentionally controls \code{breaks}
 and \code{limits}. If either is supplied through \code{...}, it's ignored with a

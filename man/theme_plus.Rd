@@ -22,7 +22,8 @@ theme_plus(
   export_width = 7.25,
   export_height = 5.95,
   override_legend_alphasize = TRUE,
-  enable_coaching = TRUE
+  enable_coaching = TRUE,
+  blank_axes = FALSE
 )
 }
 \arguments{
@@ -62,6 +63,8 @@ and strip backgrounds. Defaults to a slightly warm white, \code{"#FFFEFD"}, to r
 \item{override_legend_alphasize}{Logical indicating whether, for any fill, color, and/or shape legends, to override the size and/or alpha values to the ggplotplus default values (1 and 5, respectively). Defaults to TRUE.}
 
 \item{enable_coaching}{Logical indicating whether ggplotplus should perform certain automated checks for possible non-Universal graph design and provide coaching messages when these are detected. Defaults to TRUE.}
+
+\item{blank_axes}{Logical indicating whether x and y axis titles, labels, lines, and tick marks should be turned off. This will, in part, simulate the effects of \code{ggplot2::theme_void()} and is mainly used internally by \code{icon_array_plus()}.}
 }
 \value{
 A ggplot2 theme object to add with \code{+}.
@@ -120,5 +123,5 @@ ggplot(iris, aes(Sepal.Length, Petal.Length)) +
 
 }
 \seealso{
-\code{\link[ggplot2:theme]{ggplot2::theme()}}, \code{\link[ggplot2:ggtheme]{ggplot2::theme_gray()}}, \code{\link[ggplot2:get_theme]{ggplot2::theme_get()}}
+\code{\link[ggplot2:theme]{ggplot2::theme()}}, \code{\link[ggplot2:theme_gray]{ggplot2::theme_gray()}}, \code{\link[ggplot2:theme_get]{ggplot2::theme_get()}}
 }

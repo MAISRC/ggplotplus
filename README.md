@@ -1,16 +1,12 @@
 # README
-Dr. Alex Bajcz, Quantitative Ecologist, Minnesota Aquatic Invasive
-Species Research Center (MAISRC)
-2026-06-29
 
-<img src="man/figures/ggplotplus_hex.png" alt="ggplotplus hex sticker" style="float: right; width: 180px;"/>
 
-# *ggplotplus* – Universal Design additions for *ggplot2*
+# *ggplotplus* — Universal Design additions for *ggplot2* <img src="man/figures/ggplotplus_hex.png" align="right" height="139" alt="ggplotplus logo"/>
 
 <!-- badges: start -->
 
 [![CRAN
-version](https://img.shields.io/cran/v/ggplotplus.svg)](https://CRAN.R-project.org/package=ggplotplus)
+version](https://img.shields.io/cran/v/ggplotplus.svg?color=brightgreen)](https://CRAN.R-project.org/package=ggplotplus)
 [![R-CMD-check](https://github.com/MAISRC/ggplotplus/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/MAISRC/ggplotplus/actions/workflows/R-CMD-check.yaml)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
@@ -200,7 +196,8 @@ ggplot(iris,
 
 In this version, our eyes can’t help but be drawn to the brightly
 colored group first, helping us to understand the message of your graph
-quicker.
+quicker. `scale_focus_plus()` also supports drawing focus via `size`,
+`linewidth`, or `alpha` (transparency) instead via its `aes` argument.
 
 ### Try out new shapes
 
@@ -247,6 +244,42 @@ your graphs and more time sharing them with a wider audience.
 However, there’s a *lot* more to know! If you want to dive deeper,
 [check out the full package
 cookbook](https://maisrc.github.io/ggplotplus/).
+
+## (EXPERIMENTAL) Icon Arrays
+
+Frequency data (e.g., 12%) are unintuitive for a large fraction of
+people. Icon arrays–plots in which icons are arrayed in a rectangular
+grid and colored or shaped according to observed frequencies–can help.
+`ggplotplus` now features `icon_array_plus()`, which takes a vector of
+observations and generates a basic icon array from them:
+
+``` r
+er_visits = c(rep("Non-urgent", 88), rep("Urgent", 12))
+
+icon_array_plus(
+  vector = er_visits,
+  legend_title = "ER visits"
+)
+```
+
+![](README_files/figure-commonmark/icon%20array-1.png)
+
+Icon arrays have been shown to be much more intuitive for readers who
+might find percentages, bar graphs, or especially pie charts difficult
+to interpret and reason about.
+
+`icon_array_plus()` uses `geom_point_plus()` under the hood, so you can
+use any shapes available in the `ggplotplus` shapes palette or register
+your own using `add_shape_plus()`!
+
+## Coaching
+
+`ggplotplus` attempts to determine if your graphs contain any
+sub-optimal practices. If it finds any evidence of any, it will print
+coaching messages to the Console. If these messages get disruptive, set
+`enable_coaching` to `FALSE` in `yaxis_title_plus()`, `theme_plus()`, or
+`gridlines_plus()` to turn them off. You can also disable them for the
+current session via `options(ggplotplus.enable_coaching = FALSE)`.
 
 ## Development
 

@@ -67,10 +67,10 @@ group-by-facet combination. This is useful when adding direct labels to
 faceted plots.}
 
 \item{...}{Additional arguments passed along to
-\code{\link[ggrepel:geom_text_repel]{ggrepel::geom_label_repel()}}.}
+\code{\link[ggrepel:geom_label_repel]{ggrepel::geom_label_repel()}}.}
 }
 \value{
-A ggplot2 layer produced by \code{\link[ggrepel:geom_text_repel]{ggrepel::geom_label_repel()}}.
+A ggplot2 layer produced by \code{\link[ggrepel:geom_label_repel]{ggrepel::geom_label_repel()}}.
 }
 \description{
 \code{\link[=direct_labels_plus]{direct_labels_plus()}} adds procedurally placed text labels to grouped
@@ -79,7 +79,7 @@ space-inefficient, off to one side away from where readers will see it,
 or force readers to jump their focus long distances to align groups with
 labels. The function is intended as a friendlier alternative to
 manually placing group labels via \code{\link[ggplot2:annotate]{ggplot2::annotate()}}. Labels are drawn
-using \code{\link[ggrepel:geom_text_repel]{ggrepel::geom_label_repel()}}, so they'll repel one another as well
+using \code{\link[ggrepel:geom_label_repel]{ggrepel::geom_label_repel()}}, so they'll repel one another as well
 as the plotted data they're labeling (within reason).
 }
 \details{
@@ -110,7 +110,7 @@ labels. This helps to ensure, in general, that labels neither cover each other
 nor the underlying data they're labelling.
 
 Currently, the function sets defaults for the following parameters of
-\code{\link[ggrepel:geom_text_repel]{ggrepel::geom_label_repel()}}: size (5), box.padding (0.5), max.overlaps
+\code{\link[ggrepel:geom_label_repel]{ggrepel::geom_label_repel()}}: size (5), box.padding (0.5), max.overlaps
 (Inf), segment.size (1), and min.segment.length (0). However, these are
 overridable, if the user provides named arguments that at least partially
 match.

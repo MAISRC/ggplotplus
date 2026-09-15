@@ -19,5 +19,10 @@ Useful links:
 \author{
 \strong{Maintainer}: Alex Bajcz \email{bajcz003@umn.edu} (\href{https://orcid.org/0000-0002-5909-4676}{ORCID})
 
+Authors:
+\itemize{
+  \item Alex Bajcz \email{bajcz003@umn.edu} (\href{https://orcid.org/0000-0002-5909-4676}{ORCID})
+}
+
 }
 \keyword{internal}

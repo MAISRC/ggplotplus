@@ -37,7 +37,7 @@ directlabel_lines() is an internal helper used by
 \code{\link[=direct_labels_plus]{direct_labels_plus()}} when geometry = "line". It chooses one endpoint or
 extreme point per group, or per group-by-facet combination, to use as the
 anchor location for a direct label. How the label is then drawn with respect
-to that chosen point is determined by \code{\link[ggrepel:geom_text_repel]{ggrepel::geom_label_repel()}}.
+to that chosen point is determined by \code{\link[ggrepel:geom_label_repel]{ggrepel::geom_label_repel()}}.
 }
 \details{
 For "right" placement, the helper selects the row with the largest x-value

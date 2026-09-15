@@ -24,7 +24,7 @@ execute:
   error: false              # Hide errors (set true if you want to show failures)
   freeze: auto              # Prevent re-running code unless it changes
 editor: visual              # Helps with editing
-version: "0.5.6"
+version: "0.5.7"
 ---
 
 ## Getting started
@@ -92,7 +92,7 @@ The `ggplotplus` package is guided by three core principles:
 The package has one primary function and then several more that are most applicable only in certain situations (some of which are common, others of which are rarer):
 
 | Function | Purpose |
-|----|----|
+|------------------------------------|------------------------------------|
 | `theme_plus()` | An opinionated version of `ggplot2`'s base `theme_gray` theme, with changes to the settings for size, spacing, legend placement, geom-specific defaults, and much more. This is *the* most critical function in the package and should be used in nearly every `ggplot` call. |
 | `yaxis_title_plus()` | A function for relocating the y-axis title from its normal, less accessible location and orientation. Not often desirable in faceted plots, but often desirable in all other circumstances. |
 | `scale_continuous_plus()` | Drop-in replacement for `ggplot2`'s `scale_x/y/color/fill_continuous()` functions. It attempts to ensure axis breakpoints and limits are set to ensure that the entire range of your graphed data are labeled. Useful for every continuous scale in your graph. |
@@ -121,7 +121,7 @@ This graph is simple and reasonably effective—it's perfectly suitable for expl
 
 - **Point size**: The points are also quite small, which could hinder readability. The same mindset applies here—data elements should be as large and conspicuous as can be afforded.
 
-- **Color palette**: `ggplot2`'s default "rainbow" color palette lacks variance in **luminance** (how "bright" or "dark" the color is, aka how close to white/black it is). For a person with colorblindness (especially red-green colorblindness), the red and green shades are very difficult to distinguish. For those with no color vision at all, or for those using black-and-white viewing technologies (both of which are surprisingly common situations), all three colors used would be virtually indistinguishable.
+- **Color palette**: `ggplot2`'s default "rainbow" color palette lacks variance in **lightness** (how "bright" or "dark" the color is, aka how close to white/black it is). For a person with colorblindness (especially red-green colorblindness), the red and green shades are very difficult to distinguish. For those with no color vision at all, or for those using black-and-white viewing technologies (both of which are surprisingly common situations), all three colors used would be virtually indistinguishable.
 
 - **Foreground/background contrast**: While **contrast** (the ease with which nearby elements can be readily distinguished from one another) between the points and the background here is *ok*, it could be improved by using darker points and/or a lighter plot background. As noted above, it'd also help to have different color shades used for the points such that they contrasted better with each other. High contrast is critical for accessible and quickly interpretable graphs.
 
@@ -226,7 +226,7 @@ Like the rest of the `ggplotplus` toolkit, `theme_plus()` is meant to be a smart
 
 As previously noted, the default color palette used by `ggplot2` is not particularly accessible. Fortunately, the `viridis` package—bundled automatically with every installation of `ggplot2`—includes several palettes that were specifically designed for near-universal accessibility!
 
-The way they achieve this is by featuring continuous variance in not just in **hue** (i.e., the base “color,” such as "red," "green," or "blue," so what is conventionally thought about as "color") but also in **luminance** (light vs. dark, aka "white" vs. "black"). This multidimensional variance makes the colors in these palettes more universally distinguishable from one another for a wide range of people in a wide range of circumstances.
+The way they achieve this is by featuring continuous variance in not just in **hue** (i.e., the base “color,” such as "red," "green," or "blue," so what is conventionally thought about as "color") but also in **lightness** (light vs. dark, aka "white" vs. "black"). This multidimensional variance makes the colors in these palettes more universally distinguishable from one another for a wide range of people in a wide range of circumstances.
 
 Thanks to enhancements made to `ggplot2::theme()` as of the package's 4.0.0 Version, released September 11, 2025, one can now set default color palettes within a theme (this used to require using R's global options and was relatively inflexible). For example, one can do something like:
 
@@ -279,7 +279,7 @@ ggplot(iris,
   geom_point(mapping = aes(color = Petal.Width)) #<--MAP COLOR TO A CONTINUOUS VARIABLE.
 ```
 
-The default `ggplot2` palette for continuous variables is "blues," which is a reasonable palette in that it does vary in luminance, making it more broadly accessible. However, it doesn't vary in hue, which can make nearby values harder to distinguish. As such, `theme_plus()` changes the palette to `cividis`, which has three distinct hues: blue, gray, and yellow:
+The default `ggplot2` palette for continuous variables is "blues," which is a reasonable palette in that it does vary in lightness, making it more broadly accessible. However, it doesn't vary in hue, which can make nearby values harder to distinguish. As such, `theme_plus()` changes the palette to `cividis`, which has three distinct hues: blue, gray, and yellow:
 
 ```{r check out cividis, message=FALSE}
 ggplot(iris,
@@ -364,7 +364,7 @@ ggplot(data = iris,
 
 At `alpha = 0.3`, individual points maintain sufficient contrast with the background, but points in dense regions of the data space layer on top of each other, resulting in darker (or even blended) colors. This makes it possible for a reader to understand not just the position and group identity of points but their density as well.
 
-Note: This approach also dims the **black point strokes**, so contrast could still be a concern for low-vision readers with the yellow fill colors. Additionally, variance in luminance will be reduced by using transparency, which can make the graph harder to view in grayscale. Color (and overplotting) in graphs is challenging to navigate! When overplotting is a serious concern, consider whether a scatterplot is the best way to represent your data, and whether you need to plot *all* your data to achieve your goals.
+Note: This approach also dims the **black point strokes**, so contrast could still be a concern for low-vision readers with the yellow fill colors. Additionally, variance in lightness will be reduced by using transparency, which can make the graph harder to view in grayscale. Color (and overplotting) in graphs is challenging to navigate! When overplotting is a serious concern, consider whether a scatterplot is the best way to represent your data, and whether you need to plot *all* your data to achieve your goals.
 
 ### Easier-To-Read Legend Keys
 
@@ -1110,11 +1110,11 @@ ggplot(iris,
 
 Faceting is a relatively complex feature of `ggplot2`. `ggplotplus`'s features are mostly designed to work with it, but that doesn't mean some creativity and future improvements won't be involved!
 
-## (EXPERIMENTAL) Using Color to Draw Focus
+## Using Various Aesthetics to Draw Focus
 
-Many graph design guides encourage designers to ensure the message of their graphs is clear: "Here is what you should be looking for/comparing in this graph." This can sometimes be a challenge, especially when the data are messy or there's a lot of them and also some obligation to show them for transparency or comparison purposes.
+Many graph design guides encourage designers to ensure the message of their graphs is clear: "*Here* is what you should be looking for/comparing in this graph." This can sometimes be a challenge, especially when the data are messy or there's a lot of them and also some obligation to show them all anyway for transparency or comparison purposes.
 
-In these instances, color can be a useful visual channel (when used thoughtfully) to draw a reader's attention to one or more subsets of the data while retaining but visually de-emphasizing the rest, often via de-saturation (graying). While using color in this way in `ggplot2` is not overly difficult, it does require some understanding of the package's underlying systems.
+In these instances, chroma (grayness vs "pureness") can be a useful visual channel (when used thoughtfully) to draw a reader's attention to one or more subsets of the data while retaining but visually de-emphasizing the rest. Saturated colors tend to naturally draw our eye while gray, muted colors fade naturally into the background. While using color in this way in `ggplot2` is not overly difficult, it does require some solid understanding of the package's underlying systems.
 
 `scale_focus_plus()` is a wrapper of `ggplot2`'s `scale_fill/colour_manual()` functions that makes putting a graph into "focus mode" approachable. Returning to our scatterplot from earlier:
 
@@ -1136,7 +1136,7 @@ ggplot(iris,
   yaxis_title_plus()
 ```
 
-We could ask: What if we wanted the reader to focus on just one species here? Or perhaps the comparison between two species? `scale_focus_plus()` makes generating a version that facilitates that purpose as simple as a function call:
+We could ask: What if we wanted the reader to focus on just one species here? Or perhaps the comparison between two species? `scale_focus_plus()` makes generating a version that facilitates that purpose simple:
 
 ```{r first scale_focus_plus, message = F}
 ggplot(iris,
@@ -1160,7 +1160,7 @@ ggplot(iris,
                    )
 ```
 
-In this version, our eyes are immediately drawn to the `versicolor` group; bright and dark, vivid colors are especially good at drawing focus, whereas de-saturated, muted color in the middle of the luminance scale tend to "recede into the background," where they are easily ignored until when we choose to engage with them.
+In this version, our eyes are immediately drawn to the `versicolor` group.
 
 We can pass instructions through to `ggplot2::scale_fill_manual()` here, if we'd like, such as custom legend labels and a legend title:
 
@@ -1190,7 +1190,7 @@ ggplot(iris,
 
 `guide = "none"` would eliminate the legend entirely, which could be appropriate in graphs where a different visual channel is already communicating group differences (e.g., a bar plot where the x axis does this).
 
-By default, non-focal groups are not differentiated from each other. This is also ok in instances where another visual channel differentiates them (or when identifying distinct, non-focal groups is unnecessary). However, if you want them to be differentiated, set `diff_nonfocal` to `TRUE`:
+By default, non-focal groups are not differentiated from each other. This is also ok in instances where another visual channel differentiates them (or when identifying distinct, non-focal groups is unnecessary). However, if you want to ensure they're differentiated, set `diff_nonfocal` to `TRUE`:
 
 ```{r diff_nonfocal true, message=F}
 ggplot(iris,
@@ -1217,9 +1217,9 @@ ggplot(iris,
   )
 ```
 
-This allows you to create "focus mode" versions of plots that would still be accessible in grayscale or for those with color-vision impairments, so long as you maintain the variance in luminance that the function strives for.
+This allows you to create "focus mode" versions of plots that would still be accessible in grayscale or for those with color-vision impairments, so long as you maintain the variance in lightness that the function strives for.
 
-You can specify multiple focal groups, and you can provide custom colors for these if you prefer:
+You can focal more than one group, and you can provide custom colors for each of these if you prefer:
 
 ```{r mult focal groups, message = F}
 ggplot(iris,
@@ -1239,24 +1239,24 @@ ggplot(iris,
   yaxis_title_plus() +
   scale_focus_plus(aes = "fill", 
                    group_var = iris$Species, 
-                   focal_groups = c("versicolor", "virginica"), #<--MAKE THIS A VECTOR AND ADD GROUPS
+                   focal_groups = c("versicolor", "virginica"), #<--MAKE THIS A VECTOR AND ADD ALL GROUPS
                    labels = c("I. setosa", "I. versicolor", "I. virginica"), 
                    name = "",
                    custom_focal = c("versicolor" = "turquoise", "virginica" = "orange") #<--A NAMED VECTOR LINKS COLORS TO VALUES.
   )
 ```
 
+`scale_focus_plus()` also now controls `ggplot2`'s `alpha`, `size`, `linewidth` aesthetics via its `aes` argument. Larger points, thicker lines, and more opaque geometries will all tend to draw visual focus in much the same way as high-chroma colors do and could be superior to chroma in many situations.
+
 ### Cautions and limitations
 
-At present, `scale_focus_plus()` does not interact with the package's coaching messages system. As such, you may receive coaching messages that `scale_focus_plus()` is somehow addressing–feel free to ignore or disable these in those instances.
+At present, `scale_focus_plus()` does not interact with the package's coaching messages system. As such, you may receive coaching messages that `scale_focus_plus()` is somehow addressing–feel free to ignore or disable these if that happens.
 
-`scale_focus_plus()` also only controls the `color` and `fill` aesthetics. However, `alpha`, `size`, `linewidth` and perhaps others could all be used in a similar way to draw focus. No variants of `scale_focus_plus()` are planned to access those other aesthetics at this time, but this can be revisited in future versions.
-
-Lastly, `scale_focus_plus()` is designed to work with discrete (categorical) data only. However, continuous data could be binned into discrete categories to make them compatible; see `?scale_focus_plus()` for details and an example.
+Also, `scale_focus_plus()` is designed to work with discrete (categorical) data only. However, continuous data could be binned into discrete categories to make them compatible; see `?scale_focus_plus()` for details and an example.
 
 ## Color Isn't Everything! Incorporating Distinctive Shapes Into Scatterplots
 
-Thus far, this guide has mostly focused on graphs that use color (hue, luminance, and saturation) to communicate differences in the data. `ggplotplus` is designed to revamp how `ggplot2` approaches color to yield graphs that are more accessible and more interpretable while still having the aesthetic and engagement benefits of color.
+Thus far, this guide has mostly focused on graphs that use color (hue, lightness, and chroma) to communicate differences in the data. `ggplotplus` is designed to revamp how `ggplot2` approaches color to yield graphs that are more accessible and more interpretable while still having the aesthetic and engagement benefits of color.
 
 However, *any* graph that uses color to communicate difference can only be *so* accessible and interpretable. A small but sizable number of humans are completely colorblind, and color perception weakens as we age. Additionally, many people still read and/or view graphs in contexts wherein colors may not be readily distinguished.
 
@@ -1559,6 +1559,156 @@ ggplot(iris,
 
 I'd say that looks pretty nice, but it's, at *worst*, an evidence-based starting point upon which to build something truly impactful and distinctive!
 
+## (EXPERIMENTAL) Icon Arrays
+
+Good research suggests that one data type that many people struggle with is frequencies (i.e., the rates at which phenomena are observed). For example, for many, a 12% risk is difficult to reason about and to put into perspective. For these people, seeing that rate expressed in a bar graph or, worse, a pie chart, is often little help.
+
+For these people and many others, one visualization that has shown great promise is called an **icon array**:
+
+```{r hidden graph}
+#| echo: false
+#| fig-height: 5.5
+#| fig-width: 7.5
+er_visits = c(rep("Non-urgent", 88), rep("Urgent", 12))
+
+icon_array_plus(
+  vector = er_visits,
+  legend_title = "ER visits"
+)
+```
+
+In an icon array, a rectangular grid of icons is used to represent frequency data pictorially. This type of representation has been shown to meaningfully increase the speed and accuracy with which readers can reason about frequencies. These graphs additionally benefit from being very minimal in design by default, so they are often very quick to grasp and also to create.
+
+`ggplotplus` now features `icon_array_plus()`, a quick and easy way to create an icon array using ggplot2 functionality. In fact, the above icon array was produced using `icon_array_plus()`:
+
+```{r icon array, eval = FALSE}
+#| fig-height: 5.5
+#| fig-width: 7.5
+er_visits = c(rep("Non-urgent", 88), rep("Urgent", 12))
+
+icon_array_plus(
+  vector = er_visits, #<--OBSERVATIONS
+  legend_title = "ER visits"
+)
+```
+
+The function takes as input a vector of observations and converts them to frequencies. It then uses icons to represent these frequencies, with `shape` and `fill` (by default) used to differentiate groups.
+
+The function can handle any number of groups, including missing groups. However, if `max_observed_groups` is exceeded, smaller groups will be consolidated into an "Other" category (missing data are exempt from such consolidation):
+
+```{r bigger array}
+#| fig-height: 5.5
+#| fig-width: 10
+er_visits = c(rep(c("Routine", "Non-Urgent", "Urgent", "Serious", NA), times = c(10, 20, 40, 60, 15)))
+
+icon_array_plus(
+  vector = er_visits,
+  legend_title = "ER visits",
+  max_observed_groups = 3, #<--MAX GROUPS TO MAKE DISTINCT. GROUPS WILL BE CONSOLIDATED TO FIT BENEATH THIS LIMIT AS NEEDED.
+  na_label = "No data", #<--LABEL FOR MISSING DATA GROUP
+  other_label = "Other" #<--LABEL FOR CONSOLIDATED GROUP.
+)
+```
+
+The function allows for some customization, including in shapes used for icons, their size, and how they are sorted, as well as in the labeling of the legend:
+
+```{r custom array}
+#| fig-height: 5.5
+#| fig-width: 10
+er_visits = c(rep(c("Routine", "Non-Urgent", "Urgent", "Serious", NA), times = c(10, 20, 40, 60, 15)))
+
+icon_array_plus(
+  vector = er_visits,
+  legend_title = "ER visits",
+  na_label = "No data",
+  legend_labels = c("Routine" = "1", "Non-Urgent" = "2", "Urgent" = "3", "Serious" = "4", "No data" = "0"), #<--NEW LABELS FOR GROUPS. OLD = NEW FORMAT. NAMED VECTORS WORK BEST.
+  icon_size = 4, #<--SMALLER ICONS
+  chosen_icon_shapes = c("squircle", "circle", "flower", "sunburst", "oval"), #<--CUSTOM SHAPES FROM THE ggplotplus PALETTE.
+  sort_descending = FALSE #<--DON'T SORT LEFT TO RIGHT.
+)
+```
+
+A true icon array can feature icons of any kind to make group membership maximally intuitive and memorable. In that spirit, you can use `add_shape_plus()` to register new shapes to use within `icon_array_plus()`:
+
+```{r adding shapes to array}
+##CODE TO MAKE MALE AND FEMALE SILHOUETTES VIA "CONNECT THE DOTS"
+head_angles = seq(0, 2 * pi, length.out = 33)[-33]
+
+silhouette_head = data.frame(
+  x = 0.09 * cos(head_angles),
+  y = 0.31 + 0.09 * sin(head_angles),
+  piece = 1
+)
+
+male_body = data.frame(
+  x = c(-0.11, -0.22, -0.30, -0.23, -0.16, -0.14, -0.04,
+         0.00,  0.04,  0.14,  0.16,  0.23,  0.30,  0.22,  0.11),
+  y = c( 0.18,  0.12, -0.08, -0.11,  0.02, -0.38, -0.38,
+        -0.14, -0.38, -0.38,  0.02, -0.11, -0.08,  0.12,  0.18),
+  piece = 2
+)
+
+male_silhouette = rbind(silhouette_head, male_body)
+
+female_body = data.frame(
+  x = c(-0.08, -0.18, -0.28, -0.21, -0.14, -0.25,
+         0.25,  0.14,  0.21,  0.28,  0.18,  0.08),
+  y = c( 0.18,  0.11, -0.08, -0.11,  0.01, -0.25,
+        -0.25,  0.01, -0.11, -0.08,  0.11,  0.18),
+  piece = 2
+)
+
+female_legs = data.frame(
+  x = c(-0.12, -0.03, -0.03, -0.12,
+         0.03,  0.12,  0.12,  0.03),
+  y = c(-0.25, -0.25, -0.40, -0.40,
+        -0.25, -0.25, -0.40, -0.40),
+  piece = rep(3:4, each = 4)
+)
+
+female_silhouette = rbind(silhouette_head, female_body, female_legs)
+
+#REGISTER THESE NEW SHAPES
+add_shape_plus(
+  "example_male_silhouette",
+  male_silhouette,
+  overwrite = TRUE
+)
+add_shape_plus(
+  "example_female_silhouette",
+  female_silhouette,
+  overwrite = TRUE
+)
+
+shop_visits = c(rep("Female", 78), rep("Male", 22))
+
+icon_array_plus(
+  shop_visits,
+  chosen_icon_shapes = c(
+    "example_female_silhouette",
+    "example_male_silhouette"
+  ),
+  legend_title = "Shop visits",
+  icon_size = 7
+)
+```
+
+So, if you can dream it, you can make it! It's relatively easy to have an AI agent design the icons you want to use; Codex from OpenAI was used to draft the silhouettes used above, for example.
+
+Here are a few other technical details to keep in mind about `icon_array_plus()`:
+
+- It calls `ggplot()` internally, so there's no need to add a `ggplot()` call to your icon array.
+
+- It also calls `theme_plus()` under the hood, using `blank_axes = TRUE` to remove the x and y axes. If you'd like to adjust the theme of your icon array (e.g., to change the `end_discrete` value controlling the colors used), add a `theme_plus()` call to your icon array, **keeping `blank_axes = TRUE`**.
+
+- Many parameters of `geom_point_plus()`, including `data`, `mapping`, `stat`, and others, are disabled via `icon_array_plus()` or have different equivalents. See the documentation for details.
+
+- Although the function can be made to allow it, showing \> \~7 groups or \> \~100 icons is not generally recommended, as both would tend to exceed the limits of what many can easily and quickly comprehend (although there may be exceptions, such as when a rate of 1/1000 needs to be shown, though you might need to decrease the size of the icons considerably in such cases!).
+
+- When `max_icons` would be exceeded by your raw data, your data are scaled down proportionally to stay at or below `max_icons`, with groups being rounded up to the next full icon only if their remainders would be \>= 0.5. In other words, partial icons are not drawn.
+
+- As there are no axes scales, axes titles, or gridlines visible in an icon array, there is no reason to called `yaxis_title_plus()`, `scale_continuous_plus()`, or `gridlines_plus()` with `icon_array_plus()`.
+
 ## Exporting Graphs and Resizing
 
 Just as with `ggplot2`, I recommend users use `ggplot2::ggsave()` to export **all** their graphs from R! Using RStudio's Plots pane to export graphs makes it harder to control the resolution, width, and size of your exported graphs and to ensure consistency from one version of a graph to the next.
@@ -1641,6 +1791,22 @@ ggplot(data = iris,
 ```
 
 You'll also note that it encourages you to consider renaming your scale titles to something more informative and human-readable too!
+
+One particular aspect the package's codebase checks for is **alt** (short for "alternative") **text**. This text is read aloud to screen reader devices when an image is selected, displays when an image fails to load, and provides search engines with information needed to find relevant images, among other uses.
+
+As such, every graph you make for sharing or publication ought to have alt text. Good alt text indicates the type of chart displayed, the variables plotted, and the key trends/messages of the graph. It needn't say more than that, though!
+
+Adding alt text to a graph is easy: Use `add_alttext_plus()`:
+
+```{r alt text}
+#| eval: false
+#| include: true
+#HYPOTHETICAL CODE
+p = your_ggplot2
+p + add_alttext_plus("Scatterplot showing sepal versus petal lengths for three Iris species (setosa, versicolor, and virginica). All three share a nearly 1:1 ratio for these two metrics. Setosa's values are noticably lower than those of the other two species, though.")
+```
+
+This function is just a shortcut to `ggplot2`'s `labs(alt = ...)`.
 
 If these coaching messages get too tedious for you, though, you can set `enable_coaching` to FALSE in `yaxis_title_plus()`, `theme_plus()`, or `gridlines_plus()` to turn all these checks and messages off. You can also disable them for the duration of the session by disabling them in the R options via `options(ggplotplus.enable_coaching = FALSE)`.
 

@@ -61,13 +61,13 @@ ggplot2::ggsave(filename = "ggplotplusShapes.png",
                 height = 5.26)
 
 
-#FIGURE SM1: USE OF (DE-)SATURATION TO DRAW FOCUS TOWARDS AND AWAY FROM CERTAIN ELEMENTS IN ACCORDANCE WITH A GRAPH'S PURPOSE
+#FIGURE SM1: USE OF CHROMA ADJUSTMENT TO DRAW FOCUS TOWARDS AND AWAY FROM CERTAIN ELEMENTS IN ACCORDANCE WITH A GRAPH'S PURPOSE
 ggplotplusGreyMode = ggplot2::ggplot(data = iris,
                                      mapping = ggplot2::aes(x = Petal.Length,
                                                             y = Sepal.Length)) +
   ggplotplus::geom_point_plus(mapping = ggplot2::aes(fill = Species,
                                                      shape = Species),
-                              alpha = 0.8, l#MODEST TRANSPARENCY
+                              alpha = 0.8, #MODEST TRANSPARENCY
                               egend_labels = c("Iris setosa", "I. versicolor", "I. virginica")) +
   ggplotplus::theme_plus(export_width = 7,
                          export_height = 5.26,

@@ -325,6 +325,17 @@ S7::method(ggplot_build, GGPlotPlusPlot) <- function(plot, ...) {
 
     if(should_we_coach) {
 
+##     GUIDING MESSAGES AROUND ALT TEXT --------
+
+    any_alt_text = ggplot2::get_alt_text(built@plot)
+    alt_text_check = is.character(any_alt_text) &&
+      length(any_alt_text) == 1L &&
+      !is.na(any_alt_text) &&
+      any_alt_text != ""
+    if(!alt_text_check) {
+      message("\nNote: Your plot lacks alt text; it's critical for blind and low-vision people, subs in for broken images, and helps search engines find relevant images. Add it via ggplotplus::add_alttext_plus(). Include chart type, variables, and main trends/takeaways.")
+    }
+
 ##     GUIDING MESSAGES CONCERNING OVER-RELIANCE ON DISCRETE SHAPE AND COLOR --------
 
     #***I THINK THIS WORKS, BUT IT LOOKS LIKE USING ggplot2::get_guide_data() COULD MAYBE HAVE BEEN EASIER.

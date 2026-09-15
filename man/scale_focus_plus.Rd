@@ -2,7 +2,7 @@
 % Please edit documentation in R/UserFacingCoreFunctions.R
 \name{scale_focus_plus}
 \alias{scale_focus_plus}
-\title{Turn on a "focus mode" to highlight specific groups via color or fill}
+\title{Turn on a "focus mode" to highlight specific discrete groups}
 \usage{
 scale_focus_plus(
   aes,
@@ -12,105 +12,150 @@ scale_focus_plus(
   diff_focal = TRUE,
   gray_start = 0.35,
   gray_end = 0.65,
-  focal_start = 0.75,
-  focal_end = 0.25,
-  custom_focal = NULL,
-  custom_nonfocal = NULL,
+  saturated_start = 0.75,
+  saturated_end = 0.25,
+  custom_focal_cols = NULL,
+  custom_nonfocal_cols = NULL,
+  size_start = 6.5,
+  size_end = 3.5,
+  linewidth_start = 2,
+  linewidth_end = 0.6,
+  alpha_start = 1,
+  alpha_end = 0.35,
   ...
 )
 }
 \arguments{
-\item{aes}{A character string indicating which aesthetic should receive the
-focus scale. Must be one of \code{"color"}, \code{"colour"}, or \code{"fill"}.}
+\item{aes}{A character vector indicating which aesthetics should receive
+focus scales. Each value must be one of \code{"color"}, \code{"colour"}, \code{"fill"},
+\code{"size"}, \code{"linewidth"}, or \code{"alpha"}. Supply one value to create one
+scale or multiple values as a convenience to focus via several
+aesthetics at once. Duplicate aesthetics are not allowed; \code{"color"} and
+\code{"colour"} are considered equivalent.}
 
 \item{group_var}{A character vector or factor containing the grouping variable
-mapped to \code{aes}. This should generally be the same vector mapped to \code{colour},
-\code{color}, or \code{fill} in the plot.}
+mapped to \code{aes} in the plot.}
 
 \item{focal_groups}{A character vector giving the group value(s) in the
 \code{group_var} to be emphasized. All values must be present in \code{group_var}.}
 
 \item{diff_nonfocal}{Logical. If \code{TRUE}, non-focal groups are assigned
-different (gray/custom) color values. If \code{FALSE}, all non-focal groups
-receive the same (gray/custom) value. Defaults to \code{FALSE}.}
+different aesthetic values. If \code{FALSE}, all non-focal groups receive the
+same value. Defaults to \code{FALSE}.}
 
 \item{diff_focal}{Logical. If \code{TRUE}, focal groups are assigned different
-(viridis/custom) colors. If \code{FALSE}, all focal groups receive the same
-(viridis/custom) color. Defaults to \code{TRUE}.}
+aesthetic values. If \code{FALSE}, all focal groups receive the same value.
+Defaults to \code{TRUE}.}
 
 \item{gray_start, gray_end}{Numeric values between 0 and 1 controlling the
-range of gray values used for non-focal groups when custom_nonfocal is not
-NULL. Lower values are darker and higher values are lighter. \code{gray_start}
+range of gray values used for non-focal groups when \code{custom_nonfocal_cols}
+is \code{NULL}. Lower values are darker and higher values are lighter. \code{gray_start}
 must be less than or equal to \code{gray_end}.}
 
-\item{focal_start, focal_end}{Numeric values between 0 and 1 controlling the
-portions of the viridis palette used for focal groups when custom_focal is
-not NULL. By default, \code{scale_focus_plus()} draws from the darker and lighter
+\item{saturated_start, saturated_end}{Numeric values between 0 and 1 controlling the
+portions of the viridis palette used for focal groups when \code{custom_focal_cols}
+is \code{NULL}. By default, \code{scale_focus_plus()} draws from the darker and lighter
 ends of the palette while avoiding the middle, as humans are generally more
-drawn to very bright and very dark colors. \code{focal_end} must be less than
-or equal to \code{focal_start}.}
+drawn to very bright and very dark colors. \code{saturated_end} must be less than
+or equal to \code{saturated_start}.}
 
-\item{custom_focal}{Optional custom color(s) for focal group(s). When
+\item{custom_focal_cols}{Optional custom color(s) for focal group(s). When
 \code{diff_focal = TRUE}, this must be a named character vector whose names
 match the unique values in \code{focal_groups}. When \code{diff_focal = FALSE},
 this must be a character vector of length 1.}
 
-\item{custom_nonfocal}{Optional custom color(s) for non-focal group(s). When
+\item{custom_nonfocal_cols}{Optional custom color(s) for non-focal group(s). When
 \code{diff_nonfocal = TRUE}, this must be a named character vector whose names
 match the non-focal values in \code{group_var}. When \code{diff_nonfocal = FALSE},
 this must be a character vector of length 1.}
 
-\item{...}{Additional arguments passed to
-\code{\link[ggplot2:scale_manual]{ggplot2::scale_colour_manual()}} or \code{\link[ggplot2:scale_manual]{ggplot2::scale_fill_manual()}}. Do not
-supply \code{values}; \code{scale_focus_plus()} constructs the \code{values} argument
-internally. All other arguements should be accessible, including \code{labels}
-and \code{name}. Use these to relabel and retitle the created scale.}
+\item{size_start, size_end}{Positive numeric values controlling the most and
+least prominent point sizes, respectively. \code{size_start} is assigned at the
+focal end of the scale and must be greater than \code{size_end}.}
+
+\item{linewidth_start, linewidth_end}{Positive numeric values controlling the
+most and least prominent line widths, respectively. \code{linewidth_start} is
+assigned at the focal end of the scale and must be greater than
+\code{linewidth_end}.}
+
+\item{alpha_start, alpha_end}{Numeric values between 0 and 1 controlling the
+most and least prominent alpha values, respectively. \code{alpha_start} is
+assigned at the focal end of the scale and must be greater than
+\code{alpha_end}.}
+
+\item{...}{Additional arguments passed to each corresponding ggplot2 manual
+scale. Do not supply \code{values} or \code{aesthetics}; \code{scale_focus_plus()}
+constructs those arguments internally. When \code{aes} contains multiple
+aesthetics, every argument in \code{...} is passed to every generated scale.
+Arguments such as \code{labels}, \code{name}, and \code{guide} can therefore be shared
+conveniently. To pass different arguments to different scales, use
+multiple separate \code{scale_focus_plus()} calls instead.}
 }
 \value{
-A ggplot2 scale object.
+A ggplot2 scale object when \code{aes} contains one aesthetic, or a list
+of ggplot2 scale objects when \code{aes} contains multiple aesthetics. Either
+return value can be added directly to a ggplot with \code{+}.
 }
 \description{
-\code{scale_focus_plus()} is a wrapper for \code{ggplot2}'s \code{scale_fill/colour_manual}
-functions that helps a user quickly creates a manual color or fill scale
-that highlights one or more focal groups while de-emphasizing all other
-groups (via desaturation, by default). This is useful when a graph would
+\code{scale_focus_plus()} is a wrapper for ggplot2 manual scale functions that
+helps a user quickly create a discrete scale that highlights one or more
+focal groups while de-emphasizing all other groups via chroma (grayness),
+size, line width, or transparency. This is useful when a graph would
 ideally call attention to specific groups without removing the broader
 context and transparency provided by the remaining groups. This reduces
 cognitive load by allowing non-essential information to "fall into the
-background" to be readily ignored, increasing the reading rate, and also
+background" to be readily ignored, increasing the reading rate, and it also
 helps to signpost for the reader where the "message" is within the plot.
 }
 \details{
-By default, focal groups are assigned visually prominent colors from the
-Universal-Design-oriented viridis color palette via \code{viridisLite::viridis()},
-while non-focal groups are assigned a shared gray. Focal groups are
-differentiated from one another by default; non-focal groups are not. These
-defaults are intended to support a common graph-design pattern:
-show all groups, but make the intended comparison obvious.
+By default, when \code{aes} is set to \code{fill} or \code{color}, focal groups are assigned
+visually prominent colors from the Universal-Design-oriented viridis color
+palette via \code{viridisLite::viridis()}, while non-focal groups are assigned a
+shared gray.
 
-Note that the default values for \code{gray_start}, \code{gray_end}, \code{focal_start}, and
-\code{focal_end} intentionally map to different regions of the luminance (light
+By default, focal groups are differentiated from one another, while
+non-focal groups are not. These defaults are intended to support a common
+graph-design pattern: show all groups, but make the intended comparison
+the reader ought to make obvious.
+
+Note: the default values for \code{gray_start}, \code{gray_end}, \code{saturated_start}, and
+\code{saturated_end} intentionally map to different regions of the lightness (light
 to dark) scale so as to render the colors still distinguishable in grayscale
-by virtue of variance in luminance. This variance should be maintained for
+by virtue of variance in lightness. This variance should be maintained for
 accessibility even if different inputs are provided.
 
+Focus can also be drawn via the aesthetics of size, line width, and alpha,
+as these aesthetics are useful in many situations where variance in chroma is
+not.
+
 \code{scale_focus_plus()} is a convenience wrapper around
-\code{\link[ggplot2:scale_manual]{ggplot2::scale_colour_manual()}} and \code{\link[ggplot2:scale_manual]{ggplot2::scale_fill_manual()}}. It does
+ggplot2 manual scales for colour, fill, size, linewidth, and alpha. It does
 not alter the data or add any geoms. Instead, it constructs a named vector of
-colors from \code{group_var} and \code{focal_groups}, then passes that vector to the
-appropriate ggplot2 manual color/fill scale.
+aesthetic values from \code{group_var} and \code{focal_groups}, then passes that vector
+to the appropriate ggplot2 manual scale.
+
+Supplying multiple values to \code{aes} is shorthand for adding multiple separate
+\code{scale_focus_plus()} calls with the same focal settings and \code{...} arguments
+to be applied to all of them. Calling each aesthetic separately instead is
+useful when, for example, the scales need different names, guides, breaks,
+or labels.
 
 This function is most useful when the focal/non-focal distinction is the
 primary visual message, and all non-focal groups may be secondary. When
 individual non-focal groups must remain distinguishable, set
-\code{diff_nonfocal = TRUE} or provide \code{custom_nonfocal}.
+\code{diff_nonfocal = TRUE} or provide \code{custom_nonfocal_cols} values.
+
+Scales apply to every layer that maps or inherits the selected aesthetic. To
+focus point size without also invoking ggplot2's backwards-compatible \code{size}
+behavior for lines, map \code{size} locally inside the point layer rather than in
+the plot's global aesthetic mapping (i.e., \code{geom_point(aes(size = ...))}).
 
 Although \code{scale_focus_plus()} is designed for discrete data, it can also be
 used when the data requiring (de-)emphasis is continuous. In those cases,
 first create a discrete grouping variable in the data, then map that variable
-to \code{colour} or \code{fill}. For example, a continuous measurement could be
+to the selected aesthetic. For example, a continuous measurement could be
 converted to groups such as \code{"High cover"} and \code{"Other"} before calling
-\code{scale_focus_plus()}. See the examples section for an example.
+\code{scale_focus_plus()}. See the examples section.
 }
 \examples{
 lake_dat = data.frame(
@@ -138,6 +183,40 @@ ggplot2::ggplot(
              group_var = lake_dat$lake,
              focal_groups = c("Lake A", "Lake C"))
 
+# Focus through several aesthetics with one convenience call. Arguments in
+# ... (here, guide) are shared by every generated scale.
+ggplot2::ggplot(
+  lake_dat,
+  ggplot2::aes(x = year,
+               y = cpue,
+               colour = lake,
+               group = lake)
+) +
+  ggplot2::geom_line(ggplot2::aes(linewidth = lake)) +
+  ggplot2::geom_point(ggplot2::aes(size = lake, alpha = lake)) +
+  scale_focus_plus(aes = c("colour", "linewidth", "size", "alpha"),
+                   group_var = lake_dat$lake,
+                   focal_groups = c("Lake A", "Lake C"),
+                   diff_focal = FALSE,
+                   guide = "none")
+
+# Use separate calls when the scales need different arguments.
+ggplot2::ggplot(
+  lake_dat,
+  ggplot2::aes(x = year, y = cpue, group = lake)
+) +
+  ggplot2::geom_point(
+    ggplot2::aes(colour = lake, size = lake)
+  ) +
+  scale_focus_plus(aes = "colour",
+                   group_var = lake_dat$lake,
+                   focal_groups = "Lake A",
+                   name = "Highlighted lake") +
+  scale_focus_plus(aes = "size",
+                   group_var = lake_dat$lake,
+                   focal_groups = "Lake A",
+                   guide = "none")
+
 # One can use a shared focal color and a custom non-focal gray.
 ggplot2::ggplot(
   lake_dat,
@@ -151,8 +230,8 @@ ggplot2::ggplot(
              group_var = lake_dat$lake,
              focal_groups = c("Lake A", "Lake C"),
              diff_focal = FALSE,
-             custom_focal = "#440154",
-             custom_nonfocal = "gray70")
+             custom_focal_cols = "#440154",
+             custom_nonfocal_cols = "gray70")
 
 cover_dat = data.frame(
   taxon = c("Native plants",

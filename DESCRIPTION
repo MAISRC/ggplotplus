@@ -1,6 +1,6 @@
 Package: ggplotplus
 Title: Universal Design-Oriented Enhancements for 'ggplot2'
-Version: 0.5.6
+Version: 0.5.7
 Authors@R: 
     person("Alex", "Bajcz", email = "bajcz003@umn.edu", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-5909-4676"))
 BugReports: https://github.com/MAISRC/ggplotplus/issues
@@ -10,7 +10,6 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 URL: https://github.com/MAISRC/ggplotplus
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 Language: en-US
 Imports:
     ggplot2 (>= 4.0.1),
@@ -32,3 +31,4 @@ Suggests:
     cowplot
 Config/testthat/edition: 3
 LazyData: true
+Config/roxygen2/version: 8.1.0

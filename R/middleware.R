@@ -459,21 +459,44 @@ geom_plus_defaults = list(
 #' @keywords internal
 #' @noRd
 .partial_match_user_arg = function(args, target) {
+
+  idx = .partial_match_user_arg_index(args, target)
+
+  if(length(idx) == 1) {
+    return(args[[idx]])
+  }
+
+  return(NULL)
+
+}
+
+#' Extract a partially matched argument's index from a named list
+#'
+#' Internal helper that searches a list of named arguments for a single
+#' partially matching name using `pmatch()`. Returns the matched value's index if found.
+#'
+#' @param args A named list of arguments.
+#' @param target A character string giving the target argument name.
+#'
+#' @return The matched argument's index, or `integer(0)` if no match is found.
+#'
+#' @keywords internal
+#' @noRd
+.partial_match_user_arg_index = function(args, target) {
   nms = names(args) #FIND ALL NAMED ARGUMENTS.
 
-  if (is.null(nms)) { #IF NONE STOP--NO MATCHING POSSIBLE.
-    return(NULL)
+  if(is.null(nms)) { #IF NONE STOP--NO MATCHING POSSIBLE.
+    return(integer(0))
   }
 
   #INDEXES OF NAMED, PARTIALLY MATCHING ARGUMENTS.
-  idx = which(!is.na(nms) & pmatch(nms, target, nomatch = 0L) > 0)
+  idx = which(!is.na(nms) & pmatch(nms, target, nomatch = 0L, duplicates.ok = TRUE) > 0)
 
-  if (length(idx) > 1) { #TOO MANY? STOP.
+  if(length(idx) > 1) { #TOO MANY? STOP.
     stop(sprintf("Multiple arguments match '%s'.", target), call. = FALSE)
   }
 
-  #IF EXACTLY 1, FIND THAT MATCHING ARGUMENT OR GIVE UP.
-  if (length(idx) == 1) args[[idx]] else NULL
+  return(idx)
 }
 
 
@@ -492,27 +515,14 @@ geom_plus_defaults = list(
 #' @noRd
 .remove_partial_match_user_arg = function(args, target) {
 
-  nms = names(args)
+  idx = .partial_match_user_arg_index(args, target)
 
-  # If no names, nothing to do
-  if (is.null(nms)) {
-    return(args)
-  }
-
-  # Identify matches (same logic as your fixed helper)
-  idx = which(!is.na(nms) & pmatch(nms, target, nomatch = 0L) > 0)
-
-  # If multiple matches, mirror your existing behavior
-  if (length(idx) > 1) {
-    stop(sprintf("Multiple arguments match '%s'.", target), call. = FALSE)
-  }
-
-  # If exactly one match, drop it
-  if (length(idx) == 1) {
+  if(length(idx) == 1) {
     args = args[-idx]
   }
 
   return(args)
+
 }
 
 
@@ -1584,6 +1594,10 @@ geom_plus_defaults = list(
 #' the function is insensitive to whether the range is supplied as low-high or
 #' high-low.
 #'
+#' Also now used in validation processes. In this context, it usefully rejects
+#' NA values as valid numbers, even values like NA_real_, which counts as a 1L
+#' numeric.
+#'
 #' @param range A numeric vector of length 2 giving the range to check.
 #' @param val A numeric value to test against range.
 #' @param inclusive Logical. If TRUE, values equal to either range endpoint are
@@ -1598,9 +1612,9 @@ geom_plus_defaults = list(
   range = sort(range)
 
   if(isTRUE(inclusive)) {
-  return(val >= range[1] && val <= range[2])
+  return(!is.na(val) && val >= range[1] && val <= range[2])
   } else {
-    return(val > range[1] && val < range[2])
+    return(!is.na(val) && val > range[1] && val < range[2])
   }
 
 }
@@ -1681,5 +1695,229 @@ geom_plus_defaults = list(
   trans_name = built@layout$panel_params[[1]][[axis]]$get_transformation()$name
 
   return(identical(trans_name, "log-10"))
+
+}
+
+
+#' Choose dimensions for an icon array
+#'
+#' Internal helper that chooses a number of rows and columns for an icon array.
+#' Candidate layouts are ranked first by the number of unfilled positions they
+#' would create and then by how nearly square they are, subject to the supplied
+#' maximum aspect ratio. A square layout large enough to contain every icon is
+#' always retained as a candidate.
+#'
+#' @param leng A length-one finite integer greater than 9 giving the number of
+#' icons to arrange. The limit is in place because an icon array for 9 or fewer
+#' icons would probably not be terribly meaningful.
+#' @param max_aspect A length-one numeric value of at least 1 giving the maximum
+#' permitted ratio of columns to rows for non-square candidate layouts.
+#'
+#' @return An unnamed numeric vector of length two containing the selected
+#' number of rows followed by the selected number of columns.
+#'
+#' @keywords internal
+#' @noRd
+.findDims = function(leng, max_aspect) {
+
+  n_rows <- n_cols <- aspect <- holes <- NULL #BIND ALL THESE SO I DON'T GET DEV NOTES ABOUT THEM.
+
+  #FAIL EARLYS
+  if(is.null(leng) ||
+     length(leng) != 1L ||
+     !is.numeric(leng) ||
+     is.na(leng) ||
+     !is.finite(leng) ||
+     leng %% 1 !=0 ||
+     leng < 10
+  ) {
+    stop("`leng` must be a length-one finite integer greater than 9.")
+  }
+
+  candidates = data.frame(
+    n_rows = seq_len(floor(sqrt(leng)))
+  ) %>%
+    dplyr::mutate(
+      n_cols = ceiling(leng / n_rows),
+      holes = (n_rows * n_cols) - leng,
+      aspect = n_cols / n_rows
+    )
+
+  #AN ASPECT RATIO OF 1 IS PERMITTED BUT WOULD ONLY ACCEPT SQUARES, SO WE MAKE SURE THAT THE ALL-ENCOMPASSING SQUARE IS ALWAYS AN OPTION IT COULD PICK.
+  largeSquareSize = ceiling(sqrt(leng))
+  candidates = rbind(
+    candidates,
+    data.frame(
+      n_rows = largeSquareSize,
+      n_cols = largeSquareSize,
+      holes = (largeSquareSize^2)- leng,
+      aspect = 1
+    )
+  )
+
+  candidates = candidates %>%
+    dplyr::filter(aspect <= max_aspect) %>%
+    dplyr::arrange(holes, aspect)
+
+  winner = candidates[1, c("n_rows", "n_cols")]
+
+  return(unname(unlist(winner)))
+
+}
+
+#' Convert frequency data into icon-array coordinates
+#'
+#' Internal helper that tabulates an input vector, optionally consolidates
+#' smaller groups, rescales the resulting frequencies when necessary, and
+#' assigns one plotting coordinate to each retained icon. Icons are positioned
+#' from top to bottom within columns and columns proceed from left to right.
+#'
+#' @param vector A vector of observations to tabulate. Each distinct value is
+#' treated as a group, including missing values.
+#' @param max_icons A length-one finite integer greater than 9 giving the
+#' maximum number of icons to return. This is an upper limit, not a target.
+#' @param na_label A length-one character value used to label missing values in
+#' the returned grouping factor, if any. Ignored if not.
+#' @param max_aspect A length-one numeric value of at least 1 passed to
+#' .findDims() that controls how rectangular the final array is allowed to be.
+#' @param consolidate_small_groups Logical indicating whether lower-frequency
+#' groups should be combined when their number exceeds `max_observed_groups`.
+#' @param other_label A length-one character value used for the group created by
+#' consolidation, if applicable.
+#' @param max_observed_groups A positive length-one integer giving the maximum
+#' number of non-missing groups to retain when consolidation is requested. The
+#' consolidated `other_label` group counts toward this limit; a missing-value
+#' group does not.
+#' @param sort_descending Logical indicating whether groups should be ordered
+#' from greatest to least observed frequency. If `FALSE`, the input factor's
+#' level order is used instead, which is ordinarily alphanumeric for character
+#' input, as is default ggplot2 behavior.
+#'
+#' @details
+#' When `length(vector)` exceeds `max_icons`, group frequencies are scaled
+#' proportionally. Scaled counts are rounded up to the next whole icon only when
+#' their fractional remainder is at least 0.5 and an icon remains available
+#' below `max_icons`.
+#'
+#' Groups whose scaled count is less than half an icon can therefore disappear,
+#' and the returned number of icons can be less than `max_icons` in these or
+#' other cases.
+#'
+#' @return A data frame containing `group`, `id`, `x`, and `y`. `group` is a
+#' factor ordered according to the final icon sequence, `id` uniquely identifies
+#' each icon, and `x` and `y` give its plotting coordinates.
+#'
+#' @keywords internal
+#' @noRd
+.iconarrayize = function(vector,
+                         max_icons = 100,
+                         na_label = "Missing",
+                         max_aspect = 2.5, #WHAT THE RIGHT MAX ASPECT OUGHT TO BE IS NOT OBVIOUS BUT THIS WILL TEND TO ALLOW RECTANGULAR BUT NOT OVERLY STRETCH RECTANGULAR ARRAYS
+                         consolidate_small_groups = TRUE,
+                         other_label = "Other",
+                         max_observed_groups = 5,
+                         sort_descending = TRUE
+) {
+
+  group <- id <- NULL #BIND THESE TWO VARIBLES SO I DON'T GET NOTES.
+
+  #BASIC INFO
+  leng = length(vector)
+  vector = as.factor(vector)
+  tabs = table(vector, useNA = "ifany")
+
+  observed_groups = which(tabs > 0 & !is.na(names(tabs)))
+  num_observed_groups = length(observed_groups)
+
+  #CONSOLIDATE SMALL GROUPS TO REDUCE # OF ICONS USED UNLESS USER OVERRIDES.
+  if(num_observed_groups > max_observed_groups && consolidate_small_groups == TRUE) {
+
+    #PUTTING THIS CHECK HERE ENSURES IT TRIGGERS WHETHER A GROUP WITH THIS SAME LABEL WOULD GET CONSOLIDATED OR NOT.
+    if(any(names(tabs) == other_label &
+           tabs > 0, #THIS BIT ENSURES THAT IF SOME GROUPS ARE EMPTY, THOSE DON'T COUNT AGAINST HERE.
+           na.rm = T)) {
+      stop("Do not have both more than `max_observed_groups` groups and values equal to your input for `other_label` in your input vector.")
+    }
+
+    group_order = observed_groups[order(tabs[observed_groups], decreasing = T)] #SORT THE OBSERVED GROUPS BY FREQUENCY
+
+    tabs2Cut = group_order[max_observed_groups:length(group_order)] #CUT ALL THOSE PAST max_observed_groups.
+    otherSum = sum(tabs[tabs2Cut])
+    tabs = tabs[-c(tabs2Cut)]
+
+    tabs[other_label] = otherSum #THIS WORKS BUT names() DOESN'T FOR SOME REASON.
+
+  }
+
+  if(num_observed_groups > 7 && consolidate_small_groups == FALSE) { #YES, THIS REALLY SHOULD BE 7--I'M PUTTING MY FOOT DOWN THAT 7 IS RIGHT AROUND THE UPPER LIMIT OF WHAT IS DEFENSIBLE HERE, EVEN THOUGH MY SHAPE PALETTE IS DESIGNED TO HOPEFULLY GIVE 9 REASONABLY DISTINGUISHABLE SHAPES.
+    warning("Using an icon array for a vector with more than ~7 unique groups is not recommended, as icons will become increasingly hard to distinguish.")
+  }
+
+  if(any(names(tabs) == na_label & tabs > 0, na.rm = T) &&
+     any(is.na(names(tabs)) & tabs > 0, na.rm = T)) { #NEED TO ADDITIONALLY CHECK THAT THERE ISN'T AN EMPTY NA FACTOR LEVEL.
+    stop("Do not have both NA values and values equal to your input for `na_label` in your input vector.")
+  }
+  names(tabs)[is.na(names(tabs))] = na_label
+
+  #IMPLEMENT DESCENDING SORT CONDITIONALLY. DO SO BEFORE RESCALING SO AS TO BASE IT ON THE PRE-RESCALING, HIGHER-RESOLUTION TOTALS.
+  if(sort_descending) {
+    tabs = sort(tabs, decreasing = TRUE)
+  }
+
+  #IF WE WOULD EXCEED THE MAX # OF ICONS, RE-SCALE TO THAT MAX.
+  if(leng > max_icons) {
+    scaled_tabs = tabs * (max_icons/leng) #COULD STILL BE CALLING FOR MORE THAN MAX_ICONS
+    whole_icons = floor(scaled_tabs) #THIS WOULD BE STRICTLY LOWER, BUT MIGHT BE ROUNDING DOWN SOME HIGH REMAINDERS.
+    remainders = scaled_tabs - whole_icons #HERE'S SOME AMOUNT OF REMAINING ICONS WE COULD PERHAPS ALLOCATE.
+
+    num_qualifying_groups = length(which(remainders >= 0.5)) #HOW MANY REMAINDERS ABOVE THE ROUNDING CUTOFF WERE THERE?
+    icons_available = max_icons - sum(whole_icons) #HOW FAR SHORT OF THE MAX_ICONS ARE WE?
+
+    if(num_qualifying_groups > 0 && icons_available > 0) { #SO LONG AS WE HAVE ICONS TO SPARE AND HAVE GROUPS THAT COULD GET ONE MORE...
+
+      qualifying_remainders = which(remainders >= 0.5) #GATE BY THE CUTOFF FIRST.
+
+      qualifying_remainders = qualifying_remainders[ #FILTER AN ORDERED LIST OF REMAINDERS TO ONLY THOSE THAT QUALIFY (THESE ARE STILL INDEX POSITIONS TO REMAINDERS!)
+        order(remainders[qualifying_remainders], decreasing = T)
+      ]
+
+      num_qualifying_remainders = min(length(qualifying_remainders), icons_available) #GATE AGAIN SO WE DON'T GIVE OUT MORE THAN AT MOST 1 ICON PER GROUP.
+
+      qualifying_remainders = qualifying_remainders[seq_len(num_qualifying_remainders)]
+
+      whole_icons[qualifying_remainders] = whole_icons[qualifying_remainders] + 1 #INCREMENT THE WHOLE_ICONS FOR ALL THE REST.
+
+    }
+
+    if(any(whole_icons == 0 & tabs != 0)) {
+      message("Note: When number of icons was rescaled, at least one group received no whole icons.")
+    }
+
+    tabs = whole_icons
+    leng = sum(tabs)
+
+    if(leng < 10) {
+      stop("Rescaling to fewer than `max_icons` icons resulted in < 10 icons! Increase `max_icons` or consolidate small groups.")
+    }
+
+    message("Note: Number of icons drawn was rescaled to stay under `max_icons`.")
+
+  }
+
+  #FIND PLEASING DIMENSIONS FOR THE ARRAY
+  dims = .findDims(leng, max_aspect = max_aspect)
+
+  #BUILD A DF OBJ OF THE KIND GGPLOT2 WILL WANT AS INPUTS.
+  df = data.frame(
+    group = rep(names(tabs), times = tabs),
+    id = seq_len(leng)
+  ) %>%
+    dplyr::mutate(group = factor(group, levels = unique(group))) %>%  #BY MAKING FACTORS, MAKES SORTING OF LABELS MORE PREDICTABLE.
+    dplyr::mutate(
+      y = dims[1] - ((id - 1) %% dims[1]), #THIS IS MODULO MATH, WHICH ALWAYS BEWILDERS ME, BUT THIS ORDER ENSURES THE CATEGORIES CHANGES LEFT TO RIGHT, RATHER THAN TOP TO BOTTOM, WHICH SEEMS TO BE MORE STANDARD AND ALSO FITS WITH GENERAL HUMAN READING PATTERNS.
+      x = (id - 1) %/% dims[1] + 1
+    )
+
+  return(df)
 
 }
