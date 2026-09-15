@@ -237,6 +237,27 @@ Icon arrays have been shown to be much more intuitive for readers who might find
 
 `ggplotplus` attempts to determine if your graphs contain any sub-optimal practices. If it finds any evidence of any, it will print coaching messages to the Console. If these messages get disruptive, set `enable_coaching` to `FALSE` in `yaxis_title_plus()`, `theme_plus()`, or `gridlines_plus()` to turn them off. You can also disable them for the current session via `options(ggplotplus.enable_coaching = FALSE)`.
 
+### Alt Text
+
+One thing in particular that the package's coaching systems encourage is adding **alt text** to all your finished graphs. In a nutshell, alt text is text that describes, in general terms, what a sighted person sees when they view the graph. This is useful for unsighted individuals, image search engines, situations where a figure doesn't load or isn't visible to the reader, for unfamiliar graph types, and more. 
+
+`ggplotplus` features `add_alttext_plus()` to make it easier to add alt text to your graphs:
+
+```{r add alttext}
+#| fig-height: 5.5
+#| fig-width: 7.5
+#| message: false
+er_visits = c(rep("Non-urgent", 88), rep("Urgent", 12))
+
+icon_array_plus(
+  vector = er_visits,
+  legend_title = "ER visits"
+) + 
+  add_alttext_plus(text = "Icon array showing 12 urgent and 88 non-urgent Emergency Room visits using yellow and purple icons.")
+```
+
+This alt text may not be immediately visible to you when you make the graph unless you inspect it, but it'd be automatically passed along to a Shiny app (and, hopefully, to Quatro reports and saved image files in the future), thereby increasing the numbers of contexts in which your graph can be engaged with.
+
 ## Development
 
 `ggplotplus` is under active development. All current core functions are expected to remain relatively stable, but some parameters, features, and default settings may evolve, and addressing bugs, inconsistencies, and gaps remains a high priority. User discretion and feedback is advised! Please don't hesitate to share bug reports or questionable performance issues via the Issues feature on the package's Github page.

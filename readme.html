@@ -309,6 +309,28 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="coaching" class="level2">
 <h2 class="anchored" data-anchor-id="coaching">Coaching</h2>
 <p><code>ggplotplus</code> attempts to determine if your graphs contain any sub-optimal practices. If it finds any evidence of any, it will print coaching messages to the Console. If these messages get disruptive, set <code>enable_coaching</code> to <code>FALSE</code> in <code>yaxis_title_plus()</code>, <code>theme_plus()</code>, or <code>gridlines_plus()</code> to turn them off. You can also disable them for the current session via <code>options(ggplotplus.enable_coaching = FALSE)</code>.</p>
+<section id="alt-text" class="level3">
+<h3 class="anchored" data-anchor-id="alt-text">Alt Text</h3>
+<p>One thing in particular that the package’s coaching systems encourage is adding <strong>alt text</strong> to all your finished graphs. In a nutshell, alt text is text that describes, in general terms, what a sighted person sees when they view the graph. This is useful for unsighted individuals, image search engines, situations where a figure doesn’t load or isn’t visible to the reader, for unfamiliar graph types, and more.</p>
+<p><code>ggplotplus</code> features <code>add_alttext_plus()</code> to make it easier to add alt text to your graphs:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>er_visits <span class="ot">=</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="st">"Non-urgent"</span>, <span class="dv">88</span>), <span class="fu">rep</span>(<span class="st">"Urgent"</span>, <span class="dv">12</span>))</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">icon_array_plus</span>(</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">vector =</span> er_visits,</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">legend_title =</span> <span class="st">"ER visits"</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span> </span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_alttext_plus</span>(<span class="at">text =</span> <span class="st">"Icon array showing 12 urgent and 88 non-urgent Emergency Room visits using yellow and purple icons."</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="README_files/figure-html/add%20alttext-1.png" class="img-fluid figure-img" width="720"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>This alt text may not be immediately visible to you when you make the graph unless you inspect it, but it’d be automatically passed along to a Shiny app (and, hopefully, to Quatro reports and saved image files in the future), thereby increasing the numbers of contexts in which your graph can be engaged with.</p>
+</section>
 </section>
 <section id="development" class="level2">
 <h2 class="anchored" data-anchor-id="development">Development</h2>

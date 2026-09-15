@@ -15,7 +15,10 @@ A ggplot2 labels object for adding to a plot with \code{+}.
 }
 \description{
 Adds alternative text to a ggplot object for use by screen readers and other
-tools. This is a convenience wrapper for \code{ggplot2::labs(alt = text)}.
+tools. This is a convenience wrapper for \code{ggplot2::labs(alt = text)}. This
+alt text would be transferred to the graphical output in a Shiny app
+automatically, but is not necessarily transferred to saved or knitted files
+(yet), as this would require updates to packages like \code{quarto}.
 }
 \details{
 Useful alternative text generally identifies the chart type, the variables

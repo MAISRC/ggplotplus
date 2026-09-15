@@ -281,6 +281,36 @@ coaching messages to the Console. If these messages get disruptive, set
 `gridlines_plus()` to turn them off. You can also disable them for the
 current session via `options(ggplotplus.enable_coaching = FALSE)`.
 
+### Alt Text
+
+One thing in particular that the package’s coaching systems encourage is
+adding **alt text** to all your finished graphs. In a nutshell, alt text
+is text that describes, in general terms, what a sighted person sees
+when they view the graph. This is useful for unsighted individuals,
+image search engines, situations where a figure doesn’t load or isn’t
+visible to the reader, for unfamiliar graph types, and more.
+
+`ggplotplus` features `add_alttext_plus()` to make it easier to add alt
+text to your graphs:
+
+``` r
+er_visits = c(rep("Non-urgent", 88), rep("Urgent", 12))
+
+icon_array_plus(
+  vector = er_visits,
+  legend_title = "ER visits"
+) + 
+  add_alttext_plus(text = "Icon array showing 12 urgent and 88 non-urgent Emergency Room visits using yellow and purple icons.")
+```
+
+![](README_files/figure-commonmark/add%20alttext-1.png)
+
+This alt text may not be immediately visible to you when you make the
+graph unless you inspect it, but it’d be automatically passed along to a
+Shiny app (and, hopefully, to Quatro reports and saved image files in
+the future), thereby increasing the numbers of contexts in which your
+graph can be engaged with.
+
 ## Development
 
 `ggplotplus` is under active development. All current core functions are

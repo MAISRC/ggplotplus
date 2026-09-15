@@ -2410,7 +2410,10 @@ add_shape_plus = function(name = NULL,
 #' Add Alternative Text to a ggplot
 #'
 #' Adds alternative text to a ggplot object for use by screen readers and other
-#' tools. This is a convenience wrapper for `ggplot2::labs(alt = text)`.
+#' tools. This is a convenience wrapper for `ggplot2::labs(alt = text)`. This
+#' alt text would be transferred to the graphical output in a Shiny app
+#' automatically, but is not necessarily transferred to saved or knitted files
+#' (yet), as this would require updates to packages like `quarto`.
 #'
 #' @param text A length-one, non-empty character string containing the intended
 #'   alternative text.

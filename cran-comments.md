@@ -2,7 +2,7 @@
 
 This is an update of an existing package. 
 
-Since the last version, I have added one new exported function, `icon_array_plus()`, along with its documentation and helper functions, as I was able to graduate it out of experimental status since the last submission. The version number has been incremented to 0.5.7 to reflect this. I also made a small tweak to `theme_plus()` by adding a new parameter to it to facilitate an interaction between it and the new function.
+Since the last version, I have added two new exported function,s `icon_array_plus()` and `add_alttext_plus()`, along with their documentation and helper functions, as I was able to graduate them out of experimental status since the last submission. The version number has been incremented to 0.5.7 to reflect this. I also made a small tweak to `theme_plus()` by adding a new parameter to it to facilitate an interaction between it and the new functions.
 
 ## Test environments
 
@@ -30,6 +30,10 @@ nickname       Happy Hop
 - win-builder: R-release
 
 - win-builder: R-devel
+
+- ubuntu-latest (release) (rhub_check)
+
+- macos-latest (release) (rhub_check)
 
 ## R CMD check results
 
